@@ -1,0 +1,38 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/interface.qml</file>
+        <file>qml/Player.qml</file>
+        <file>qml/ProgressingText.qml</file>
+        <file>qml/Monsters/Global/Goblin.qml</file>
+        <file>qml/Cards/Neutral/Punch.qml</file>
+        <file>qml/Cards/CardContainer.qml</file>
+        <file>qml/Monsters/MonsterContainer.qml</file>
+        <file>qml/Cards/Neutral/Kick.qml</file>
+        <file>qml/Cards/Neutral/Block.qml</file>
+        <file>qml/Cards/Neutral/LesserHealingPotion.qml</file>
+        <file>qml/PlayerProgress.qml</file>
+        <file>qml/Places/Elven/Eleren.qml</file>
+        <file>qml/Places/Elven/TheCrossedArrows.qml</file>
+        <file>qml/Places/Elven/TheDuskJungle.qml</file>
+        <file>qml/Places/Elven/TheFangHills.qml</file>
+        <file>qml/Places/Global/GameIntro.qml</file>
+        <file>qml/Places/Global/NameSelection.qml</file>
+        <file>qml/Places/Global/TutorialCombat.qml</file>
+        <file>qml/Places/Place.qml</file>
+        <file>qml/Monsters/Elven/Wolf.qml</file>
+        <file>qml/Icons/Inventory.png</file>
+        <file>qml/Icons/Quests.png</file>
+        <file>qml/Icons/Settings.png</file>
+        <file>qml/Icons/Levelup.png</file>
+        <file>qml/Places/Dungeon.qml</file>
+        <file>qml/Monsters/Elven/GiantBear.qml</file>
+        <file>qml/Places/Elven/NaturesVault.qml</file>
+        <file>qml/Places/Shop.qml</file>
+        <file>qml/Icons/Arrow.png</file>
+        <file>qml/Icons/Crystal.png</file>
+        <file>qml/Icons/Herb.png</file>
+        <file>qml/Icons/Fur.png</file>
+        <file>qml/Icons/Metal.png</file>
+        <file>qml/Cards/Neutral/Focus.qml</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,243 @@
+// check to see how many of the card the player owns. They can't add cards they dont have!
+var searchForCard = cardSelected.cardClass + "\/" + cardSelected.name;
+var countCardsInventory = (player.playerInventory.match(new RegExp(searchForCard, "g")) || []).length;
+var countCardsDeck = (player.playerDeck.match(new RegExp(searchForCard, "g")) || []).length;
+if (countCardsDeck < countCardsInventory){
+    if (player.playerDeck == ""){
+        player.playerDeck += cardSelected.cardClass + "/" + cardSelected.name;
+    }
+    else{
+        player.playerDeck += ", " + cardSelected.cardClass + "/" + cardSelected.name;
+    }
+    var cardToAddString = "qrc:/qml/Cards/" + cardSelected.cardClass + "/" + cardSelected.name + ".qml";
+    // create new card and load it into deck
+    var deckCard = Qt.createComponent(cardToAddString);
+    var newDeckCard = deckCard.createObject(deck_list);
+    console.log("Deck is now: " + player.playerDeck);
+}
+
+
+
+
+
+
+// text with scrollbar
+Rectangle{
+    id: content_panel_container
+    anchors.left: stats_panel.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: options_panel.top
+    color: "#ffffff"
+    border.width: 2
+    border.color: "black"
+
+    Rectangle{
+        id: content_panel
+        anchors.fill: parent
+        anchors.margins: 20
+        anchors.rightMargin: 50
+
+        Item{
+           id: scenes
+        }
+
+        ProgressingText{
+            id: content_text
+            anchors.fill: parent
+
+            function loadScene(textArray){
+                for (var i = 0; i < textArray.length; i++){
+                    content_text.addText(textArray[i]);
+                }
+            }
+
+            Connections{
+                target:root
+                onButtonPressed:{
+                    // cleanse buttons
+                    for (var b = 0; b < option_buttons.children.length; b++){
+                        option_buttons.children[b].destroy();
+                    }
+
+                    content_text.addVariable(choice);
+                }
+            }
+        }
+    }
+
+    MouseArea{
+        id: content_interactions
+        anchors.fill: parent
+        propagateComposedEvents: true
+
+        onClicked:{
+            // block progression if there is input necessary
+            if (!options_panel.blockProgression){
+                content_text.showNext();
+                if (scrollbar_container.visible){
+                    scrollbar_mousearea.moveTextToEnd();
+                }
+            }
+            else{
+                // flash red
+                options_panel.flash();
+            }
+        }
+        onWheel:{
+            if (scrollbar_container.visible){
+                scrollbar.height = content_panel_container.height - (content_text.getContentHeight() - content_panel_container.height) > 40 ? content_panel_container.height - (content_text.getContentHeight() - content_panel_container.height) : 40;
+                scrollbar.anchors.topMargin = scrollbar.anchors.topMargin - wheel.angleDelta.y;
+                if (scrollbar.anchors.topMargin < 0){
+                    scrollbar.anchors.topMargin = 0;
+                }
+                if (scrollbar.anchors.topMargin >= scrollbar_container.height - scrollbar.height){
+                    scrollbar.anchors.topMargin = scrollbar_container.height - scrollbar.height;
+                }
+                // adjust content_text to match
+                var overflow = content_text.getContentHeight() - content_panel_container.height;
+                var ratio = overflow/(scrollbar_container.height -scrollbar.height);
+                content_text.anchors.topMargin = -1 * scrollbar.anchors.topMargin * ratio;
+            }
+        }
+    }
+
+    // scroll view sucks so we'll make our own scrollbar
+    Rectangle{
+        id: scrollbar_container
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.margins: 8
+        width: 20
+        color: "lightgrey"
+        visible: content_text.getContentHeight() > content_panel_container.height ? true : false
+
+        Rectangle{
+            id: scrollbar
+            width: scrollbar_container.width
+            height: 40
+           // height: content_panel_container.height - (content_text.getContentHeight() - content_panel_container.height) > 40 ? content_panel_container.height - (content_text.getContentHeight() - content_panel_container.height) : 40
+            color: "white"
+            border.width: 1
+            border.color: "black"
+            anchors.top: parent.top
+        }
+
+        MouseArea{
+            id: scrollbar_mousearea
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton
+
+            function moveTextToEnd(){
+                scrollbar.height = content_panel_container.height - (content_text.getContentHeight() - content_panel_container.height) > 40 ? content_panel_container.height - (content_text.getContentHeight() - content_panel_container.height) : 40;
+                scrollbar.anchors.topMargin = scrollbar_container.height - scrollbar.height;
+                // adjust content_text to match
+                var overflow = content_text.getContentHeight() - content_panel_container.height;
+                var ratio = overflow/(scrollbar_container.height -scrollbar.height);
+                content_text.anchors.topMargin = -1 * scrollbar.anchors.topMargin * ratio;
+            }
+
+            onMouseYChanged:{
+                if (scrollbar_mousearea.pressed){
+                    scrollbar.height = content_panel_container.height - (content_text.getContentHeight() - content_panel_container.height) > 40 ? content_panel_container.height - (content_text.getContentHeight() - content_panel_container.height) : 40;
+                    scrollbar.anchors.topMargin = mouseY - scrollbar.height/2;
+                    if (scrollbar.anchors.topMargin < 0){
+                        scrollbar.anchors.topMargin = 0;
+                    }
+                    if (scrollbar.anchors.topMargin >= scrollbar_container.height - scrollbar.height){
+                        scrollbar.anchors.topMargin = scrollbar_container.height - scrollbar.height;
+                    }
+                    // adjust content_text to match
+                    var overflow = content_text.getContentHeight() - content_panel_container.height;
+                    var ratio = overflow/(scrollbar_container.height -scrollbar.height);
+                    content_text.anchors.topMargin = -1 * scrollbar.anchors.topMargin * ratio;
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// option buttons with flashing
+// where the buttons and entry forms are
+Rectangle{
+    id: options_panel
+    anchors.left: stats_panel.right
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 170
+    color: "#ffffff"
+    border.width: 2
+    border.color: "black"
+    visible: root.inCombat ? false : true
+    property bool blockProgression: false
+
+    SequentialAnimation on color {
+       id: flashNeedsInput
+       running: false
+       loops: 1
+       ColorAnimation { from: "#ffffff"; to: "#ddaaaa"; duration: 100 }
+       ColorAnimation { from: "#ddaaaa"; to: "#ffffff"; duration: 100 }
+   }
+    function flash(){
+        flashNeedsInput.restart();
+    }
+
+    // Text entry
+    TextField{
+        id: textEntry
+        anchors.centerIn: options_panel
+        placeholderText: ""
+        width: 300
+        visible: placeholderText == "" ? false : true
+
+        Button{
+            id: submit
+            anchors.right: parent.right
+            text: "OK"
+            onClicked:{
+                if (textEntry.placeholderText == "Enter Name"){
+                    player.name = textEntry.text;
+                    if (player.name == ""){ player.name = "Unnamed"; }
+                }
+
+                textEntry.placeholderText = "";
+                options_panel.blockProgression = false;
+                content_text.showNext();
+                if (scrollbar_container.visible){
+                    scrollbar_mousearea.moveTextToEnd();
+                }
+            }
+        }
+    }
+
+    // Button options
+    GridLayout{
+        id: option_buttons
+        anchors.fill: parent
+        anchors.margins: 20
+        rows: 3
+        columns: 4
+        columnSpacing: parent.height/16
+        anchors.topMargin: parent.height/16
+        visible: option_buttons.children.length > 0 ? true : false
+    }
+
+
+}
