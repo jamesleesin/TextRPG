@@ -1,26 +1,118 @@
 import QtQuick 2.0
+import QtQuick.Layouts 1.3
+import QtQuick.Controls 1.4
 
 Item {
     id: shop
     anchors.fill: parent
     property string name: ""
     property variant itemsForSale:[]
+    property variant resourcePrices:[]
+    property variant resourceNames: ["Metal", "Fur", "Medicinal Herb", "Arrow", "Magic Crystal"]
+    property variant iconNames: ["Metal", "Fur", "Herb", "Arrow", "Crystal"]
+
+    signal exitedShop()
+
+
+    Component{
+        id: resource_row
+
+        Row{
+            id: resourceRow
+            height: icon.height
+            spacing: 10
+            property string resourceName: ""
+            property int resourceNum: -1
+
+            Image{
+                id: icon
+                source: resourceName != "" ? "../Icons/" + resourceRow.resourceName + ".png" : ""
+                width: 40
+                height: 40
+            }
+            Text{
+                text: resourceNames[resourceNum] + ": " + resourcePrices[resourceNum] + "g ea."
+                font.pointSize: root.tinyFontSize
+                font.family: root.textFont
+                color: root.textColor
+                verticalAlignment: Text.AlignVCenter
+                height: parent.height
+            }
+            Rectangle{
+                id: buyButton
+                width: buyButtonText.width+10
+                height: buyButtonText.height+8
+                color: "white"
+                border.width: 1
+                border.color: "black"
+
+                Text{
+                    id: buyButtonText
+                    text: "Buy"
+                    font.pointSize: root.smallFontSize
+                    font.family: root.textFont
+                    color: root.textColor
+                    anchors.centerIn: parent
+                }
+
+                MouseArea{
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked:{
+                        exitedShop();
+                    }
+                    onEntered: {
+                        parent.color = "lightgrey";
+                    }
+                    onExited: {
+                        parent.color = "white";
+                    }
+                }
+            }
+            Rectangle{
+                id: sellButton
+                width: sellButtonText.width+10
+                height: sellButtonText.height+8
+                color: "white"
+                border.width: 1
+                border.color: "black"
+
+                Text{
+                    id: sellButtonText
+                    text: "Sell"
+                    font.pointSize: root.smallFontSize
+                    font.family: root.textFont
+                    color: root.textColor
+                    anchors.centerIn: parent
+                }
+
+                MouseArea{
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked:{
+                        exitedShop();
+                    }
+                    onEntered: {
+                        parent.color = "lightgrey";
+                    }
+                    onExited: {
+                        parent.color = "white";
+                    }
+                }
+            }
+        }
+    }
 
     // inventory management
     Rectangle{
-        id: inventory_interface
-        anchors.left: stats_panel.right
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        color: "white"
+        id: shop_interface
+        anchors.fill: parent
         border.width: 2
         border.color: "black"
-        visible: root.inInventory || root.inHandPicking ? true : false
 
         Text{
-            id: inventory_label
-            text: root.inInventory ? "Inventory" : "Deck"
+            id: shop_name
+            text: name
             font.pointSize: root.mediumFontSize
             font.family: root.textFont
             color: root.textColor
@@ -31,111 +123,122 @@ Item {
         }
 
         Rectangle{
-            id: inventory_container
-            anchors.top: inventory_label.bottom
-            anchors.bottom: inventory_buttons.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: 10
+            id: divider_1
+            anchors.horizontalCenter: shop_name.horizontalCenter
+            anchors.top: shop_name.bottom
+            anchors.topMargin: 10
+            height: 2
+            border.width: 2
+            border.color: "black"
+            width: 350
+        }
+
+        Rectangle{
+            id: resource_container
+            anchors.horizontalCenter: shop_name.horizontalCenter
+            anchors.top: divider_1.bottom
+            height: 300
+            width: 500
             color: "white"
 
-            ScrollView{
+            Column{
+                id: resource_list
                 anchors.fill: parent
-                anchors.leftMargin: 20
-
-                // the card list for both the inventory and the deck (if on hand picking)
-                GridLayout{
-                    id: card_list
-                    width: card_list.children.length * 150 > inventory_container.width - 50 ? inventory_container.width - 50 : card_list.children.length * 150
-                    columns: width/150
-                    columnSpacing: 20
-                    rowSpacing: 30
-                }
-            }
-            Rectangle{
-                id: inventory_tracker
-                visible: false
+                spacing: 10
+                anchors.leftMargin: 10
+                anchors.rightMargin: 5
+                anchors.topMargin: 10
+                anchors.horizontalCenter: parent.horizontalCenter
             }
         }
 
         Rectangle{
-            id: card_details
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            color: "white"
+            id: divider_2
+            anchors.horizontalCenter: shop_name.horizontalCenter
+            anchors.top: resource_container.bottom
+            anchors.topMargin: 10
+            height: 2
             border.width: 2
             border.color: "black"
-            height: 200
-            width: parent.width/3
+            width: 350
+        }
+        Rectangle{
+            id: shop_container
+            anchors.top: divider_2.bottom
+            anchors.topMargin: 20
+            anchors.horizontalCenter: shop_name.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.margins: 10
+            width: shop_inventory.width
+            color: "white"
 
-            property string name: "None"
-            property string cardType: ""
-            property string cardClass: ""
-            property string condition: ""
-            property int power: 0
-            property string cost: ""
-            property string effect: ""
-            property bool cardSelected: false
+            // the card list for both the inventory and the deck (if on hand picking)
+            GridLayout{
+                id: shop_inventory
+                width: shop_inventory.children.length * 150
+                columns: 3
+                columnSpacing: 20
+                rowSpacing: 30
+            }
+        }
+    }
 
-            Column{
-                id: card_stats
-                spacing: 5
-                anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.leftMargin: 20
-                anchors.topMargin: 20
-                visible: card_details.cardSelected ? true : false
-                width: parent.width-20
+    Rectangle{
+        id: backButton
+        width: backButtonText.width+10
+        height: backButtonText.height+8
+        color: "white"
+        border.width: 1
+        border.color: "black"
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.margins: 20
 
-                Text{
-                    text: {
-                        // add a space before capital letters
-                        var newStr = card_details.name[0];
-                        for (var i = 1; i < card_details.name.length; i++){
-                            if (card_details.name.charAt(i) == card_details.name.charAt(i).toUpperCase()){ newStr += " " + card_details.name.charAt(i); }
-                            else{ newStr += card_details.name.charAt(i); }
-                        }
-                        return newStr;
-                    }
-                    font.pointSize: root.smallFontSize
-                    font.family: root.textFont
-                    color: root.textColor
-                    font.bold: true
-                    width: parent.width
-                    wrapMode: Text.WordWrap
-                }
-                Text{
-                    text: card_details.cardClass
-                    font.pointSize: root.tinyFontSize
-                    font.family: root.textFont
-                    color: root.textColor
-                    width: parent.width
-                    wrapMode: Text.WordWrap
-                }
-                Text{
-                    text: card_details.condition
-                    font.pointSize: root.tinyFontSize
-                    font.family: root.textFont
-                    color: root.textColor
-                    width: parent.width
-                    wrapMode: Text.WordWrap
-                }
-                Text{
-                    text: card_details.cost
-                    font.pointSize: root.tinyFontSize
-                    font.family: root.textFont
-                    color: root.textColor
-                    width: parent.width
-                    wrapMode: Text.WordWrap
-                }
-                Text{
-                    text: card_details.effect
-                    font.pointSize: root.tinyFontSize
-                    font.family: root.textFont
-                    color: root.textColor
-                    width: parent.width
-                    wrapMode: Text.WordWrap
-                }
+        Text{
+            id: backButtonText
+            text: "Stop browsing"
+            font.pointSize: root.smallFontSize
+            font.family: root.textFont
+            color: root.textColor
+            anchors.centerIn: parent
+        }
+
+        MouseArea{
+            anchors.fill: parent
+            hoverEnabled: true
+            onClicked:{
+                exitedShop();
+            }
+            onEntered: {
+                parent.color = "lightgrey";
+            }
+            onExited: {
+                parent.color = "white";
+            }
+        }
+    }
+
+    Component.onCompleted: {
+        for (var r = 0; r < iconNames.length; r++){
+            var res = resource_row.createObject(resource_list);
+            res.resourceName = iconNames[r];
+            res.resourceNum = r;
+        }
+    }
+
+    Connections{
+        target: place
+        onEnteredShop:{
+            for (var card = 0; card < shop_inventory.children.length; card++){
+                shop_inventory.children[card].destroy();
+            }
+            // load in all the cards the player owns
+            var inventoryArray = itemsForSale;
+            for (var i = 0; i < inventoryArray.length; i++){
+                var itemString = "qrc:/qml/Cards/" + inventoryArray[i] + ".qml";
+                // create new card and load it into hand
+                var item = Qt.createComponent(itemString);
+                var newItem = item.createObject(shop_inventory);
             }
         }
     }

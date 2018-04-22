@@ -85,7 +85,7 @@ Rectangle {
         return player.level;
     }
     function getPlayerPower(){
-        return player.currentDeckPower;
+        return player.strength + player.dexterity + player.spellpower + player.luck + player.resilience;
     }
     function getPlayerGold(){
         return player.gold;
@@ -115,6 +115,34 @@ Rectangle {
                 currentMonster = 0;
                 stop();
                 root.startPlayerTurn();
+            }
+        }
+    }
+
+    Component{
+        id: single_cost
+
+        Row{
+            id: singleCost
+            property string src: ""
+            property int amt: 0
+            height:30
+            spacing: 5
+
+            Image{
+                id: icon
+                source: singleCost.src
+                width: 30
+                height: 30
+            }
+            Text{
+                id: cardCost
+                text: singleCost.amt
+                font.pointSize: root.tinyFontSize
+                font.family: root.textFont
+                color: root.textColor
+                height: 30
+                verticalAlignment: Text.AlignVCenter
             }
         }
     }
@@ -269,7 +297,7 @@ Rectangle {
 
             Text{
                 id: playerPower
-                text: "Power: " + player.currentDeckPower
+                text: "Power: " + root.getPlayerPower()
                 font.pointSize: root.smallFontSize
                 font.family: root.textFont
                 color: root.textColor
@@ -469,12 +497,7 @@ Rectangle {
                                 root.openInventory(player.playerInventory);
                             }
                             else{
-                                // check if deck power > max deck power
-                                if (player.currentDeckPower > player.maxDeckPower){
-                                    errorDialogText.text = "Your deck is too powerful to use."
-                                    errorDialog.visible = true;
-                                }
-                                else if (player.playerDeck.length < 20){
+                                if (player.playerDeck.length < 20){
                                     errorDialogText.text = "Your deck must have at least 20 cards!"
                                     errorDialog.visible = true;
                                 }
@@ -592,44 +615,13 @@ Rectangle {
                         return "Deck Size: " + player.playerDeck.length + "/20";
                     }
                     else if (root.inHandPicking){
-                        return "Hand Size: " + player.startingHand.length + "/6"
+                        return "Hand Size: " + player.startingHand.length + "/3"
                     }
                     return "";
                 }
-                font.pointSize: root.smallFontSize
+                font.pointSize: root.mediumFontSize
                 font.family: root.textFont
-                color: {
-                    if (root.inInventory){
-                        return player.playerDeck.length > 20 ? "red" : "green";
-                    }
-                    else if(root.inHandPicking){
-                        return player.startingHand.length > 6 ? "red" : "green";
-                    }
-                    return root.textColor;
-                }
-            }
-            Text{
-                id: tooltip_2
-                text: {
-                    if (root.inInventory){
-                        return "Power: " + player.currentDeckPower + "/" + player.maxDeckPower;
-                    }
-                    else if (root.inHandPicking){
-                        return "Power: " + player.currentHandPower + "/" + player.maxStartingHandPower;
-                    }
-                    return "";
-                }
-                font.pointSize: root.smallFontSize
-                font.family: root.textFont
-                color: {
-                    if (root.inInventory){
-                        return player.currentDeckPower > player.maxDeckPower ? "red" : "green";
-                    }
-                    else if (root.inHandPicking){
-                        return player.currentHandPower > player.maxStartingHandPower ? "red" : "green";
-                    }
-                    return root.textColor;
-                }
+                color: root.textColor
             }
         }
     }
@@ -1294,15 +1286,15 @@ Rectangle {
 
             // Add to deck, doubles as a add to hand button
             Rectangle{
-                id: addToDeckButton
-                width: addToDeckButtonText.width+10
-                height: addToDeckButtonText.height+8
+                id: addButton
+                width: addButtonText.width+10
+                height: addButtonText.height+8
                 color: "white"
                 border.width: 1
                 border.color: "black"
 
                 Text{
-                    id: addToDeckButtonText
+                    id: addButtonText
                     text: root.inInventory ? "Add To Deck" : "Add To Hand"
                     font.pointSize: root.smallFontSize
                     font.family: root.textFont
@@ -1316,27 +1308,30 @@ Rectangle {
                     onClicked:{
                         if (cardSelected != null){
                             if (root.inInventory){
-                                // limit number of a card based on power
-                                var searchForCard = cardSelected.cardClass + "\/" + cardSelected.name;
-                                var countCardsDeck = 0;
-                                for (var c = 0; c < player.playerDeck.length; c++){
-                                    if (player.playerDeck[c] === searchForCard){ countCardsDeck++; }
-                                }
-                                var cardLimit = 6 - cardSelected.power;
-                                if (countCardsDeck < cardLimit){
-                                    player.playerDeck.push(cardSelected.cardClass + "/" + cardSelected.name);
-                                    var cardToAddString = "qrc:/qml/Cards/" + cardSelected.cardClass + "/" + cardSelected.name + ".qml";
-                                    // create new card and load it into deck
-                                    var deckCard = Qt.createComponent(cardToAddString);
-                                    var newDeckCard = deckCard.createObject(deck_list);
-                                    console.log("Deck is now: " + player.playerDeck);
-                                    tooltip_1.text = "Deck Size: " + player.playerDeck.length + "/20";
-
-                                    // update deck power
-                                    player.currentDeckPower += cardSelected.power;
+                                if (player.playerDeck.length < 20){
+                                    // limit number of a card based on power
+                                    var searchForCard = cardSelected.cardClass + "\/" + cardSelected.name;
+                                    var countCardsDeck = 0;
+                                    for (var c = 0; c < player.playerDeck.length; c++){
+                                        if (player.playerDeck[c] === searchForCard){ countCardsDeck++; }
+                                    }
+                                    var cardLimit = 6 - cardSelected.power;
+                                    if (countCardsDeck < cardLimit){
+                                        player.playerDeck.push(cardSelected.cardClass + "/" + cardSelected.name);
+                                        var cardToAddString = "qrc:/qml/Cards/" + cardSelected.cardClass + "/" + cardSelected.name + ".qml";
+                                        // create new card and load it into deck
+                                        var deckCard = Qt.createComponent(cardToAddString);
+                                        var newDeckCard = deckCard.createObject(deck_list);
+                                        console.log("Deck is now: " + player.playerDeck);
+                                        tooltip_1.text = "Deck Size: " + player.playerDeck.length + "/20";
+                                    }
+                                    else{
+                                        errorDialogText.text = "You are not allowed any more of this card in your deck."
+                                        errorDialog.visible = true;
+                                    }
                                 }
                                 else{
-                                    errorDialogText.text = "You are not allowed any more of this card in your deck."
+                                    errorDialogText.text = "You cannot have more than 20 cards in your deck!"
                                     errorDialog.visible = true;
                                 }
                             }
@@ -1351,15 +1346,22 @@ Rectangle {
                                     if (player.startingHand[q] === searchForCardDeck){ countCardsInHand++; }
                                 }
                                 if (countCardsInHand < countCardsInDeck){
-                                    player.startingHand.push(cardSelected.cardClass + "/" + cardSelected.name);
-                                    var cardToAddToHandString = "qrc:/qml/Cards/" + cardSelected.cardClass + "/" + cardSelected.name + ".qml";
-                                    // create new card and load it into hand
-                                    var handCard = Qt.createComponent(cardToAddToHandString);
-                                    var newHandCard = handCard.createObject(deck_list);
-                                    console.log("Hand is now: " + player.startingHand);
-
-                                    // update hand power
-                                    player.currentHandPower += cardSelected.power;
+                                    if (deck_list.children.length >= 3){
+                                        errorDialogText.text = "Your maximum starting hand size is 3."
+                                        errorDialog.visible = true;
+                                    }
+                                    else{
+                                        player.startingHand.push(cardSelected.cardClass + "/" + cardSelected.name);
+                                        var cardToAddToHandString = "qrc:/qml/Cards/" + cardSelected.cardClass + "/" + cardSelected.name + ".qml";
+                                        // create new card and load it into hand
+                                        var handCard = Qt.createComponent(cardToAddToHandString);
+                                        var newHandCard = handCard.createObject(deck_list);
+                                        if (newHandCard.power > 2){
+                                            deck_list.children[deck_list.children.length-1].destroy();
+                                            errorDialogText.text = "This card is too powerful to start with."
+                                            errorDialog.visible = true;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1374,15 +1376,15 @@ Rectangle {
             }
             // remove from deck, doubles as a remove from hand button
             Rectangle{
-                id: removeFromDeckButton
-                width: removeFromDeckButtonText.width+10
-                height: removeFromDeckButtonText.height+8
+                id: removeButton
+                width: removeButtonText.width+10
+                height: removeButtonText.height+8
                 color: "white"
                 border.width: 1
                 border.color: "black"
 
                 Text{
-                    id: removeFromDeckButtonText
+                    id: removeButtonText
                     text: root.inInventory ? "Remove From Deck" : "Remove From Hand"
                     font.pointSize: root.smallFontSize
                     font.family: root.textFont
@@ -1401,18 +1403,18 @@ Rectangle {
                                 // search deck for a card matching this name and remove an instance of it
                                 player.playerDeck.splice(index, 1);
                                 deck_list.children[index].destroy();
-                                player.currentDeckPower -= cardSelected.power;
                                 console.log("Deck is now "+ player.playerDeck);
                                 tooltip_1.text = "Deck Size: " + player.playerDeck.length + "/20";
                             }
                             else if (root.inHandPicking){
+                                // search hand for a card matching this name and remove an instance of it
                                 var cardToRemoveFromHandString = cardSelected.cardClass + "/" + cardSelected.name;
                                 var indexHand = player.startingHand.indexOf(cardToRemoveFromHandString);
-                                // search hand for a card matching this name and remove an instance of it
-                                player.startingHand.splice(indexHand, 1);
-                                deck_list.children[indexHand].destroy();
-                                player.currentHandPower -= cardSelected.power;
-                                console.log("Hand is now "+ player.startingHand);
+                                if (indexHand >= 0){
+                                    player.startingHand.splice(indexHand, 1);
+                                    deck_list.children[indexHand].destroy();
+                                    console.log("Hand is now "+ player.startingHand);
+                                }
                             }
                         }
                     }
@@ -1426,17 +1428,16 @@ Rectangle {
             }
             // save hand
             Rectangle{
-                id: saveHandButton
-                width: saveHandButtonText.width+10
-                height: saveHandButtonText.height+8
+                id: saveButton
+                width: saveButtonText.width+10
+                height: saveButtonText.height+8
                 color: "white"
                 border.width: 1
                 border.color: "black"
-                visible: root.inHandPicking ? true : false
 
                 Text{
-                    id: saveHandButtonText
-                    text: "Confirm Hand"
+                    id: saveButtonText
+                    text: root.inInventory ? "Confirm Deck" : "Confirm Hand"
                     font.pointSize: root.smallFontSize
                     font.family: root.textFont
                     color: root.textColor
@@ -1448,24 +1449,26 @@ Rectangle {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked:{
-                        // count starting hand power
-                        if (player.currentHandPower > player.maxStartingHandPower){
-                            errorDialogText.text = "Your hand is too powerful to use."
-                            errorDialog.visible = true;
+                        if (root.inInventory){
+                            if (player.playerDeck.length < 20){
+                                errorDialogText.text = "Your deck must have at least 20 cards!"
+                                errorDialog.visible = true;
+                            }
+                            else{
+                                root.inInventory = false;
+                            }
                         }
-                        else if (player.startingHand.length > 6){
-                            errorDialogText.text = "Your maximum hand size is 6."
-                            errorDialog.visible = true;
-                        }
-                        else if (player.startingHand.length < 1){
-                            errorDialogText.text = "You must start with at least 1 card in your hand!"
-                            errorDialog.visible = true;
-                        }
-                        else{
-                            root.inHandPicking = false;
-                            loadStartingHand(player.startingHand)
-                            // show combat area
-                            inCombat = true;
+                        else if (root.inHandPicking){
+                            if (player.startingHand.length < 1){
+                                errorDialogText.text = "You must start with at least 1 card in your hand!"
+                                errorDialog.visible = true;
+                            }
+                            else{
+                                root.inHandPicking = false;
+                                loadStartingHand(player.startingHand)
+                                // show combat area
+                                inCombat = true;
+                            }
                         }
                     }
                     onEntered: {
@@ -1552,12 +1555,24 @@ Rectangle {
 
                 Text{
                     text: root.cardHovered == null ? "" : root.cardHovered.displayName
-                    font.pointSize: root.smallFontSize
+                    font.pointSize: root.mediumFontSize
                     font.family: root.textFont
                     color: root.textColor
                     font.bold: true
                     width: parent.width
                     wrapMode: Text.WordWrap
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    horizontalAlignment: Text.AlignHCenter
+                }
+                Text{
+                    text: root.cardHovered == null ? "" : root.cardHovered.cardType
+                    font.pointSize: root.smallFontSize
+                    font.family: root.textFont
+                    color: root.textColor
+                    width: parent.width
+                    wrapMode: Text.WordWrap
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    horizontalAlignment: Text.AlignHCenter
                 }
                 Text{
                     text: root.cardHovered == null ? "" : root.cardHovered.cardClass
@@ -1566,6 +1581,8 @@ Rectangle {
                     color: root.textColor
                     width: parent.width
                     wrapMode: Text.WordWrap
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    horizontalAlignment: Text.AlignHCenter
                 }
                 Text{
                     text: root.cardHovered == null ? "" : root.cardHovered.condition
@@ -1574,14 +1591,14 @@ Rectangle {
                     color: root.textColor
                     width: parent.width
                     wrapMode: Text.WordWrap
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    horizontalAlignment: Text.AlignHCenter
                 }
-                Text{
-                    text: root.cardHovered == null ? "" : root.cardHovered.cost
-                    font.pointSize: root.tinyFontSize
-                    font.family: root.textFont
-                    color: root.textColor
-                    width: parent.width
-                    wrapMode: Text.WordWrap
+                Row{
+                    id: card_costs
+                    height: 30
+                    spacing: 10
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
                 Text{
                     text: root.cardHovered == null ? "" : root.cardHovered.effect
@@ -1590,6 +1607,8 @@ Rectangle {
                     color: root.textColor
                     width: parent.width
                     wrapMode: Text.WordWrap
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    horizontalAlignment: Text.AlignHCenter
                 }
             }
         }
@@ -2063,6 +2082,7 @@ Rectangle {
 
             playerDeck = shuffledDeck;
             root.isPlayerTurn = true;
+            startPlayerTurn();
         }
         // player turn start
         onStartPlayerTurn:{
@@ -2097,9 +2117,30 @@ Rectangle {
         // hover and display stats in preview frame
         onPreviewCard:{
             root.cardHovered = card;
+            var costString = card.cost.split(", ");
+            var iconNames = ["Metal", "Fur", "Herb", "Arrow", "Crystal"];
+            var resourceNames = ["Metal", "Fur", "Medicinal Herb", "Arrow", "Magic Crystal"];
+
+            for (var c = 0; c < costString.length; c++){
+                var amt = costString[c].split(" - ")[1];
+                var resource = costString[c].split(" - ")[0];
+                if (resource === "Energy"){
+
+                }
+                for (var r = 0; r < resourceNames.length; r++){
+                    if (resource === resourceNames[r]){
+                        var newCost = single_cost.createObject(card_costs);
+                        newCost.amt = amt;
+                        newCost.src = "Icons/" + iconNames[r] + ".png";
+                    }
+                }
+            }
         }
         onStopPreviewCard:{
             root.cardHovered = null;
+            for (var c = 0; c < card_costs.children.length; c++){
+                card_costs.children[c].destroy();
+            }
         }
         // select card, change to targetting mode
         onSelectCard:{
@@ -2414,7 +2455,6 @@ Rectangle {
                 deck_list.children[d].destroy();
             }
             // load player deck
-            player.currentDeckPower = 0;
             if (player.playerDeck.length != 0){
                 var deckArray = player.playerDeck;
                 for (var j = 0; j < deckArray.length; j++){
@@ -2422,7 +2462,6 @@ Rectangle {
                     // create new card and load it into hand
                     var deckCard = Qt.createComponent(deckString);
                     var newDeckCard = deckCard.createObject(deck_list);
-                    player.currentDeckPower += newDeckCard.power;
                 }
             }
         }

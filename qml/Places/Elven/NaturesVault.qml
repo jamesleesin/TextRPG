@@ -8,7 +8,8 @@ Item {
     Shop{
         id: shop
         name: "Nature's Vault"
-        itemsForSale: []
+        itemsForSale: ["Neutral/LesserHealingPotion", "Neutral/LesserHealingPotion"]
+        resourcePrices: [4, 3, 1, 2, 3]
     }
 
     Place{
@@ -18,6 +19,7 @@ Item {
         links:["Eleren"]
         linkAltText: ["Outside to Eleren"]
         worldLocation: "Elven"
+        isShop: true
     }
 
     Connections{
@@ -25,6 +27,13 @@ Item {
         onEnteredShop:{
             place.visible = false;
             shop.visible = true;
+        }
+    }
+    Connections{
+        target: shop
+        onExitedShop:{
+            shop.visible = false;
+            place.visible = true;
         }
     }
 }

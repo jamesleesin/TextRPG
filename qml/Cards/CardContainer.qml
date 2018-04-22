@@ -166,10 +166,23 @@ Item {
         Text{
             id: card_type
             text: cardType
-            font.pointSize: text.length > 10 ? root.tinestFontSize : root.tinyFontSize
+            font.pointSize: root.tinestFontSize
             font.family: root.textFont
             color: root.textColor
             anchors.horizontalCenter: parent.horizontalCenter
+        }
+        Text{
+            id: card_class
+            text: cardClass
+            font.pointSize: root.tinestFontSize
+            font.family: root.textFont
+            color: root.textColor
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+        Rectangle{
+            color: "transparent"
+            width: 10
+            height: 1
         }
         Row{
             id: card_costs

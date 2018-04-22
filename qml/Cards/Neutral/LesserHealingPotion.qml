@@ -18,7 +18,8 @@ Rectangle {
 
     width: 120
     height: 160
-    border.width: 2
+    radius: 8
+    border.width: 3
     border.color: card_container != undefined ? card_container.selected ? "yellow" : "black" : "black"
     color: card_container != undefined ? card_container.cardColor : "$ffffff"
 
