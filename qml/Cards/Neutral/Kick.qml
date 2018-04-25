@@ -21,7 +21,7 @@ Rectangle {
     radius: 8
     border.width: 3
     border.color: card_container != undefined ? card_container.selected ? "yellow" : "black" : "black"
-    color: card_container != undefined ? card_container.cardColor : "$ffffff"
+    color: card_container != undefined ? card_container.cardColor : "#ffffff"
 
     // if card container is destroyed then destroy this as well
     onChildrenChanged: {

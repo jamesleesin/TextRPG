@@ -34,5 +34,9 @@
         <file>qml/Icons/Fur.png</file>
         <file>qml/Icons/Metal.png</file>
         <file>qml/Cards/Neutral/Focus.qml</file>
+        <file>qml/NPC/NPC.qml</file>
+        <file>qml/NPC/Elven/Alva.qml</file>
+        <file>qml/Quests/Elven/HerbCollecting.qml</file>
+        <file>qml/Quests/QuestContainer.qml</file>
     </qresource>
 </RCC>

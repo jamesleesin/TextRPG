@@ -73,7 +73,13 @@ DISTFILES += \
     qml/Icons/Arrow.png \
     qml/Icons/Crystal.png \
     qml/Icons/Herb.png \
-    qml/Cards/Neutral/Focus.qml
+    qml/Cards/Neutral/Focus.qml \
+    qml/Places/Elven/NPC.qml \
+    qml/NPC/NPC.qml \
+    qml/NPC/Alva.qml \
+    qml/NPC/Elven/Alva.qml \
+    qml/Quests/QuestContainer.qml \
+    qml/Quests/Elven/HerbCollecting.qml
 
 RESOURCES += \
     resources.qrc

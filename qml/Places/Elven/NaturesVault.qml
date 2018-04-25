@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import "../"
+import "../../NPC"
 
 Item {
     id: eleren
@@ -20,6 +21,7 @@ Item {
         linkAltText: ["Outside to Eleren"]
         worldLocation: "Elven"
         isShop: true
+        npcList: ["Alva"]
     }
 
     Connections{

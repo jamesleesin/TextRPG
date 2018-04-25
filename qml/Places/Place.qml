@@ -3,6 +3,8 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.2
 
+import "../NPC"
+
 Item {
     id: place
     anchors.fill: parent
@@ -36,6 +38,10 @@ Item {
     // shop
     property bool isShop: false
     signal enteredShop()
+
+    // npc
+    property variant npcList: []
+    property variant currentlyTalkingTo: null
 
     Component{
         id: place_button
@@ -171,6 +177,90 @@ Item {
     }
 
     Component{
+        id: interact_button
+
+        Button{
+            id: interactButton
+            property string npcName: ""
+            text: "Approach " + npcName
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumWidth: (place_buttons.width - (parent.height/16)*(place_buttons.children.length))/place_buttons.children.length
+            style: ButtonStyle {
+                label: Text {
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    font.family:  root.textFont
+                    font.pointSize: root.mediumFontSize
+                    text: control.text
+                }
+            }
+            onClicked: {
+                console.log("talk with " + npcName);
+                var npcString = "qrc:/qml/NPC/" + place.worldLocation + "/" + npcName + ".qml";
+                console.log(npcString);
+                var npcItem = Qt.createComponent(npcString);
+                var newNPC = npcItem.createObject(npc_container);
+                place.currentlyTalkingTo = newNPC;
+                if (newNPC.questOffered !== ""){
+                    offeredQuest();
+                }
+            }
+        }
+    }
+
+    Component{
+        id: quest_accept
+
+        Button{
+            id: questAcceptButton
+            property string questName: ""
+            text: "Accept Quest"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumWidth: (place_buttons.width - (parent.height/16)*(place_buttons.children.length))/place_buttons.children.length
+            style: ButtonStyle {
+                label: Text {
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    font.family:  root.textFont
+                    font.pointSize: root.mediumFontSize
+                    text: control.text
+                }
+            }
+            onClicked: {
+                setUpPlace();
+                // call root to add the quest object to the player
+                root.acceptQuest(questName);
+            }
+        }
+    }
+    Component{
+        id: quest_decline
+
+        Button{
+            id: questDeclineButton
+            text: "Decline Quest"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumWidth: (place_buttons.width - (parent.height/16)*(place_buttons.children.length))/place_buttons.children.length
+            style: ButtonStyle {
+                label: Text {
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    font.family:  root.textFont
+                    font.pointSize: root.mediumFontSize
+                    text: control.text
+                }
+            }
+            onClicked: {
+                setUpPlace();
+            }
+        }
+    }
+
+
+    Component{
         id: text_entry
 
         // Text entry
@@ -285,6 +375,20 @@ Item {
             }
         }
         Rectangle{
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: place_options.top
+            border.width: 2
+            border.color: "black"
+            visible: npc_container.children.length > 1 ? true : false
+
+            ScrollView{
+                id: npc_container
+                anchors.fill: parent
+            }
+        }
+        Rectangle{
             id: place_options
             anchors.left: parent.left
             anchors.right: parent.right
@@ -307,7 +411,20 @@ Item {
         }
     }
 
-    Component.onCompleted: {
+    function offeredQuest(){
+        for (var n = 0; n < place_buttons.children.length; n++){
+            place_buttons.children[n].destroy();
+        }
+        var acceptBut = quest_accept.createObject(place_buttons);
+        acceptBut.questName = place.currentlyTalkingTo.questOffered;
+        var declineBut = quest_decline.createObject(place_buttons);
+    }
+
+    function setUpPlace(){
+        for (var q = 0; q < place_buttons.children.length; q++){
+            place_buttons.children[q].destroy();
+        }
+
         root.setLocation(worldLocation);
         if (requireTextEntry !== ""){
             var newTextEntry = text_entry.createObject(place_options);
@@ -318,13 +435,19 @@ Item {
             if (canExplore){
                 var expBut = explore_button.createObject(place_buttons);
             }
+            // add dungeon button
             if (isDungeon){
                 var dunBut = enter_dungeon_button.createObject(place_buttons);
             }
+            // add shop button
             if (isShop){
                 var shopBut = shop_button.createObject(place_buttons);
             }
-
+            // for each npc add an interact button
+            for (var n = 0; n < npcList.length; n++){
+                var npcBut = interact_button.createObject(place_buttons);
+                npcBut.npcName = npcList[n];
+            }
             for (var i = 0; i < links.length; i++){
                 var newLink = place_button.createObject(place_buttons);
                 if (linkAltText.length > 0){
@@ -336,5 +459,9 @@ Item {
                 newLink.linkTo = links[i];
             }
         }
+    }
+
+    Component.onCompleted: {
+        setUpPlace();
     }
 }

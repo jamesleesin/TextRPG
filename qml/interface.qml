@@ -8,6 +8,7 @@ import QtGraphicalEffects 1.0
 import "Monsters"
 import "Cards"
 import "Places"
+import "Quests"
 
 Rectangle {
     id: root
@@ -76,6 +77,9 @@ Rectangle {
     signal setLocation(string loc)
     // change location sets more in detail locations, e.g. Eleren, TheCrossedArrows
     signal changeLocation(string loc)
+
+    // quests
+    signal acceptQuest(string quest)
 
     /* Return functions for player information */
     function getPlayerName(){
@@ -540,6 +544,12 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         onClicked:{
+                            if (quest_interface.visible){
+                                quest_interface.visible = false;
+                            }
+                            else{
+                                quest_interface.visible = true;
+                            }
                         }
                         onEntered: {
                             quests_button.hovered = true;
@@ -727,12 +737,12 @@ Rectangle {
                         maxEnergy: 10
                         hp: 0
                         energy: 0
-                        gold: 0
+                        gold: 100
                         startingHand: []
                         playerDeck: []
                         playerInventory: ["Neutral/Punch", "Neutral/Kick", "Neutral/Block", "Neutral/Focus", "Neutral/LesserHealingPotion"]
 
-                        playerResourceCount: [0, 0, 1, 0, 0]
+                        playerResourceCount: [10, 0, 1, 0, 0]
                     }
                 }
             }
@@ -1176,6 +1186,30 @@ Rectangle {
                     verticalAlignment: Text.AlignVCenter
                     height: parent.height
                 }
+            }
+        }
+    }
+
+    // inventory management
+    Rectangle{
+        id: quest_interface
+        anchors.left: stats_panel.right
+        anchors.right: parent.right
+        anchors.rightMargin: -2
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        color: "white"
+        border.width: 2
+        border.color: "black"
+        visible: false
+
+        ScrollView{
+            anchors.fill: parent
+            anchors.leftMargin: 20
+
+            ColumnLayout{
+                id: quests
+                width: quest_interface.width-30
             }
         }
     }
@@ -2464,6 +2498,12 @@ Rectangle {
                     var newDeckCard = deckCard.createObject(deck_list);
                 }
             }
+        }
+        // attach a quest object to the player
+        onAcceptQuest:{
+            var questString = "qrc:/qml/Quests/" + quest + ".qml";
+            var questItem = Qt.createComponent(questString);
+            var newQuest = questItem.createObject(quests);
         }
     }
 }
