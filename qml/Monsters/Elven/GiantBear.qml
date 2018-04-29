@@ -22,7 +22,7 @@ Rectangle{
     // drops
     property string goldDrops: "10-14"
     property string resourceDrops: ""
-    property string lootDrops:""
+    property string lootDrops:"1-Elven/NaimersBow"
 
     // combat
     property string basicAttack: "DAMAGE:1-2:The bear grazes you with a quick swipe, dealing &DAMAGE& damage."

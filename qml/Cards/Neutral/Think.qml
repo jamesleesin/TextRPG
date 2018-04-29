@@ -2,18 +2,18 @@ import QtQuick 2.0
 import "../"
 
 Rectangle {
-    id: lesserHealingPotion
-    property string name: "LesserHealingPotion"
-    property string displayName: "Lesser Healing Potion"
+    id: think
+    property string name: "Think"
+    property string displayName: "Think"
     property string cardClass: "Neutral"
     property string condition: "None"
     property int power: 1
-    property string cost: "Medicinal Herb - 1"
-    property string effect: "Restore 5 hp."
-    property string effectForParser: "HEAL:5"
+    property string cost: "Energy - 0"
+    property string effect: "Draw a card."
+    property string effectForParser: "DRAW:1"
     property string cardType: "Spell"
-    property string useCardText: "You uncork the small potion and drink it, recovering 5 health."
-    property int cardNumber: 5
+    property string useCardText: "You rack through your brain for ideas."
+    property int cardNumber: 6
     property bool selfCast: true
 
     width: 120
@@ -24,7 +24,7 @@ Rectangle {
 
     // if card container is destroyed then destroy this as well
     onChildrenChanged: {
-        lesserHealingPotion.destroy();
+        think.destroy();
     }
 
     // call this when card is drawn

@@ -68,6 +68,10 @@ Rectangle {
     // player turn
     signal startPlayerTurn()
     property bool isPlayerTurn: false
+    signal playerDrawCard()
+    // on draw effects
+    signal equipItem(variant card)
+    signal unequipItem(variant card)
 
     // inventory signals
     signal openInventory(variant playerInventory)
@@ -120,6 +124,15 @@ Rectangle {
                 stop();
                 root.startPlayerTurn();
             }
+        }
+    }
+    // delay before the players first turn
+    Timer{
+        id: playerFirstTurnDelay
+        interval: 1000
+        onTriggered: {
+            root.isPlayerTurn = true;
+            playerDrawCard();
         }
     }
 
@@ -733,16 +746,17 @@ Rectangle {
                         spellpower: 0
                         resilience: 0
                         luck: 0
-                        maxHp: 0
+                        maxHp: 10
                         maxEnergy: 10
-                        hp: 0
-                        energy: 0
+                        hp: 10
+                        energy: 5
                         gold: 100
                         startingHand: []
                         playerDeck: []
-                        playerInventory: ["Neutral/Punch", "Neutral/Kick", "Neutral/Block", "Neutral/Focus", "Neutral/LesserHealingPotion"]
+                        playerInventory: ["Neutral/CopperHelmet", "Neutral/Punch", "Neutral/Kick", "Neutral/Block", "Neutral/Focus", "Neutral/LesserHealingPotion", "Neutral/Think"]
 
                         playerResourceCount: [10, 0, 1, 0, 0]
+                        playerEquipmentSlots: []
                     }
                 }
             }
@@ -758,11 +772,42 @@ Rectangle {
             border.width: 2
             border.color: "black"
 
-            Row{
-                id: player_hand
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 30
+            Rectangle{
+                anchors.fill: parent
+                anchors.margins: 10
+                color: "transparent"
+                clip: true
+
+                Row{
+                    id: player_hand
+                    anchors.left: parent.left
+                    anchors.leftMargin: width > player_hand_container.width ? 10 : (player_hand_container.width-width)/2
+                    //anchors.left: parent.left
+                    anchors.top: parent.top
+                   // anchors.leftMargin: 10
+                    anchors.topMargin: 0
+                    height: player_hand_container.height
+                    spacing: 10
+                }
+            }
+            // scroll the player's hand
+            MouseArea{
+                anchors.fill: parent
+                propagateComposedEvents: true
+                onWheel:{
+                    if (player_hand.width > player_hand_container.width){
+                        if (wheel.angleDelta.y > 0){
+                            if (player_hand.width + player_hand.anchors.leftMargin + 20 > player_hand_container.width){
+                                player_hand.anchors.leftMargin -= wheel.angleDelta.y/4;
+                            }
+                        }
+                        else{
+                            player_hand.anchors.leftMargin -= wheel.angleDelta.y/4;
+                        }
+                        if (player_hand.anchors.leftMargin > 10){ player_hand.anchors.leftMargin = 10; }
+                    }
+
+                }
             }
         }
 
@@ -905,103 +950,27 @@ Rectangle {
                 color: root.textColor
                 anchors.horizontalCenter: parent.horizontalCenter
             }
-            Row{
-                spacing: 30
-                visible: combat_outcome.victory ? true : false
+            Rectangle{
+                id: combat_loot_items_container
+                width: 300
+                height: 400
+                color: "white"
+                border.width: 2
+                border.color: "black"
+                anchors.horizontalCenter: parent.horizontalCenter
+                visible: combat_outcome.lootSoFar.length == 0 ? false : true
 
-                Rectangle{
-                    id: combat_loot_items_container
-                    width: 300
-                    height: 400
-                    color: "white"
-                    border.width: 2
-                    border.color: "black"
+                ScrollView{
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
 
-                    ScrollView{
-                        anchors.fill: parent
-                        anchors.margins: 10
-                        horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
-
-                        GridLayout{
-                            id: combat_loot_items
-                            width: combat_loot_items_container.width - 30
-                            columns: 2
-                            columnSpacing: -10
-                            rowSpacing: 30
-                        }
-                    }
-                }
-                Rectangle{
-                    id: combat_loot_item_details
-                    width: 300
-                    height: 400
-                    color: "white"
-                    border.width: 2
-                    border.color: "black"
-
-                    property string name: "None"
-                    property string cardType: ""
-                    property string cardClass: ""
-                    property string condition: ""
-                    property int power: 0
-                    property string cost: ""
-                    property string effect: ""
-                    property bool cardSelected: false
-
-                    Column{
-                        id: combat_loot_card_stats
-                        spacing: 5
-                        anchors.centerIn: parent
-                        visible: combat_loot_item_details.cardSelected ? true : false
-                        width: parent.width
-
-                        Text{
-                            text: {
-                                // add a space before capital letters
-                                var newStr = combat_loot_item_details.name[0];
-                                for (var i = 1; i < combat_loot_item_details.name.length; i++){
-                                    if (combat_loot_item_details.name.charAt(i) == combat_loot_item_details.name.charAt(i).toUpperCase()){ newStr += " " + combat_loot_item_details.name.charAt(i); }
-                                    else{ newStr += combat_loot_item_details.name.charAt(i); }
-                                }
-                                return newStr;
-                            }
-                            font.pointSize: root.smallFontSize
-                            font.family: root.textFont
-                            color: root.textColor
-                            font.bold: true
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        Text{
-                            text: combat_loot_item_details.cardClass
-                            font.pointSize: root.tinyFontSize
-                            font.family: root.textFont
-                            color: root.textColor
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        Text{
-                            text: combat_loot_item_details.condition
-                            font.pointSize: root.tinyFontSize
-                            font.family: root.textFont
-                            color: root.textColor
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        Text{
-                            text: combat_loot_item_details.cost
-                            font.pointSize: root.tinyFontSize
-                            font.family: root.textFont
-                            color: root.textColor
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        Text{
-                            text: combat_loot_item_details.effect
-                            font.pointSize: root.tinyFontSize
-                            font.family: root.textFont
-                            color: root.textColor
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            horizontalAlignment: Text.AlignHCenter
-                            width: parent.width-50
-                            wrapMode: Text.WordWrap
-                        }
+                    GridLayout{
+                        id: combat_loot_items
+                        width: combat_loot_items_container.width - 30
+                        columns: 2
+                        columnSpacing: -10
+                        rowSpacing: 30
                     }
                 }
             }
@@ -1036,7 +1005,6 @@ Rectangle {
                         for (var r = 0; r < combat_outcome.resourcesSoFar.length; r++){
                             player.playerResourceCount[r] += combat_outcome.resourcesSoFar[r];
                         }
-                        // show next line in the story
                         if (combat_outcome.victory){
                             place_container.children[0].children[0].victory();
                         }
@@ -1203,8 +1171,21 @@ Rectangle {
         border.color: "black"
         visible: false
 
+        Text{
+            id: quest_label
+            text: "Quests"
+            font.pointSize: root.mediumFontSize
+            font.family: root.textFont
+            color: root.textColor
+            anchors.horizontalCenter: parent.horizontalCenter
+            font.bold: true
+            anchors.top: parent.top
+            anchors.topMargin: 10
+        }
+
         ScrollView{
             anchors.fill: parent
+            anchors.topMargin: 10
             anchors.leftMargin: 20
 
             ColumnLayout{
@@ -1435,10 +1416,12 @@ Rectangle {
                                 var cardToRemoveString = cardSelected.cardClass + "/" + cardSelected.name;
                                 var index = player.playerDeck.indexOf(cardToRemoveString);
                                 // search deck for a card matching this name and remove an instance of it
-                                player.playerDeck.splice(index, 1);
-                                deck_list.children[index].destroy();
-                                console.log("Deck is now "+ player.playerDeck);
-                                tooltip_1.text = "Deck Size: " + player.playerDeck.length + "/20";
+                                if (index >= 0){
+                                    player.playerDeck.splice(index, 1);
+                                    deck_list.children[index].destroy();
+                                    console.log("Deck is now "+ player.playerDeck);
+                                    tooltip_1.text = "Deck Size: " + player.playerDeck.length + "/20";
+                                }
                             }
                             else if (root.inHandPicking){
                                 // search hand for a card matching this name and remove an instance of it
@@ -1569,6 +1552,7 @@ Rectangle {
         color: "#aa444444"
         visible: root.cardHovered == null ? false : true
 
+
         Rectangle{
             id: card_preview
             anchors.centerIn: parent
@@ -1577,6 +1561,7 @@ Rectangle {
             color: "white"
             border.width: 2
             border.color: "black"
+            radius: 20
 
             Column{
                 id: card_stats
@@ -2094,7 +2079,27 @@ Rectangle {
                 // create new card and load it into hand
                 var component = Qt.createComponent(cardString);
                 var newCard = component.createObject(player_hand);
+
+                // burn equipment duplicates in order
+                if (newCard.cardType === "Equipment"){
+                    var slot = newCard.equipmentSlot;
+                    var found = false;
+                    for (var s = 0; s < player.playerEquipmentSlots.length; s++){
+                        if (player.playerEquipmentSlots[s].equipmentSlot === slot){
+                            // burn this card
+                            found = true;
+                            newCard.burnThis = true;
+                        }
+                    }
+                    if (!found){
+                        // add to player hand
+                        player.playerEquipmentSlots.push(newCard);
+                        equipItem(newCard);
+                    }
+                }
+                newCard.fadeIn();
             }
+
             // set up deck as well
             playerDeck = [];
             for (var d = 0; d < player.playerDeck.length; d++){
@@ -2115,13 +2120,16 @@ Rectangle {
             }
 
             playerDeck = shuffledDeck;
-            root.isPlayerTurn = true;
-            startPlayerTurn();
+            // delay first turn
+            playerFirstTurnDelay.start();
         }
         // player turn start
         onStartPlayerTurn:{
             root.isPlayerTurn = true;
-            // draw a card. If no cards left, lose combat and lose 10% of gold
+            playerDrawCard();
+        }
+        // draw a card. If no cards left, lose combat and lose 10% of gold
+        onPlayerDrawCard:{
             if (playerDeck.length <= 0){
                 console.log("Player decked out!");
                 combat_outcome.goldGain = Math.round(player.gold * -0.1);
@@ -2131,20 +2139,43 @@ Rectangle {
                 inCombat = false;
             }
             else{
-                var drawCard = playerDeck[0];
+                var drawCard = playerDeck[0];                
                 playerDeck.splice(0, 1); // remove top card
                 var cardString = "qrc:/qml/Cards/" + drawCard + ".qml";
                 // create new card and load it into hand
-                var component = Qt.createComponent(cardString);
-                var newCard = component.createObject(player_hand);
+                var card = Qt.createComponent(cardString);
+                var newCard = card.createObject(player_hand);
+
+                // look at the card and judge whether or not it can be put in the player's hand.
+                // For equipment, if the player already has an equipment in the same slot, burn this card.
+                if (newCard.cardType === "Equipment"){
+                    var slot = newCard.equipmentSlot;
+                    var found = false;
+                    for (var s = 0; s < player.playerEquipmentSlots.length; s++){
+                        if (player.playerEquipmentSlots[s].equipmentSlot === slot){
+                            // burn this card
+                            found = true;
+                            newCard.burnThis = true;
+                        }
+                    }
+                    if (!found){
+                        // add to player hand
+                        player.playerEquipmentSlots.push(newCard);
+                        equipItem(newCard);
+                    }
+                }
+                // trigger fade in animation for drawing cards
+                newCard.fadeIn();
             }
+
+            // text triggers for deck size
             if (playerDeck.length == 1){
                 root.addToCombatLog("A sharp pain shoots through your head. You rack your brain for ideas, but nothing new comes to you!");
             }
-            else if (playerDeck.length == 5){
+            else if (playerDeck.length == 4){
                 root.addToCombatLog("You feel mentally exhausted. You should end this fight soon...");
             }
-            else if (playerDeck.length == 10){
+            else if (playerDeck.length == 8){
                 root.addToCombatLog("You start find it harder and harder to focus.");
             }
         }
@@ -2185,59 +2216,8 @@ Rectangle {
         onTargetAlly:{
             if (root.cardSelected != null && root.isPlayerTurn){
                 if ((!root.cardSelected.selfCast && ally.id !== player.id) || (root.cardSelected.selfCast && ally.id === player.id)){
-                    if (root.cardSelected.attemptUseCard()){
-                        // use card effect
-                        var cardEffectArray = root.cardSelected.effectForParser.split(",");
-                        for (var i = 0; i < cardEffectArray.length; i++){
-                            var cardEffect = cardEffectArray[i];
-                            var cardType = cardEffect.split(":")[0]; // e.g. DAMAGE
-                            var amount = cardEffect.split(":")[1];  // e.g. 1+STRENGTH*1
-                            var baseAmount = amount.split("+")[0];
-                            var totalAmount;
-                            var specialScaling = amount.split("+").length === 1 ? amount.split("+")[0] : amount.split("+")[1]; // either 0 or e.g. STRENGTH*1
-                            var scaledAmount = 0;
-                            if (amount.split("+").length === 1){
-                                scaledAmount = specialScaling;
-                                totalAmount = baseAmount;
-                            }
-                            else{
-                                var scalingStat = specialScaling.split("*")[0];
-                                var scalingMultiplier = specialScaling.split("*")[1];
-                                if (scalingStat === "STRENGTH"){ scaledAmount = player.strength; }
-                                else if (scalingStat === "DEXTERITY"){ scaledAmount = player.dexterity; }
-                                else if (scalingStat === "SPELLPOWER"){ scaledAmount = player.spellpower; }
-                                else if (scalingStat === "RESILIENCE"){ scaledAmount = player.resilience; }
-                                else if (scalingStat === "LUCK"){ scaledAmount = player.luck; }
-                                scaledAmount *= scalingMultiplier;
-                                totalAmount = Number(scaledAmount) + Number(baseAmount);
-                            }
-
-                            var combatLogText;
-                            // reduce damage
-                            if (cardType === "REDUCE"){
-                                combatLogText = root.cardSelected.useCardText;
-                                // replace placeholder strings with values
-                                root.addToCombatLog(combatLogText);
-
-                                var statusEffect = ["REDUCE",totalAmount,1];
-                                ally.statusEffects.push(statusEffect);
-                            }
-                            else if (cardType === "HEAL"){
-                                combatLogText = root.cardSelected.useCardText;
-                                // replace placeholder strings with values
-                                root.addToCombatLog(combatLogText);
-                                var newHp = Number(ally.hp) + Number(totalAmount);
-                                ally.hp = newHp > ally.maxHp ? ally.maxHp : newHp;
-                            }
-                            else if (cardType === "ENERGY"){
-                                combatLogText = root.cardSelected.useCardText;
-                                // replace placeholder strings with values
-                                root.addToCombatLog(combatLogText);
-                                var newEnergy = Number(ally.energy) + Number(totalAmount);
-                                ally.energy = newEnergy > ally.maxEnergy ? ally.maxEnergy : newEnergy;
-                            }
-
-                        }
+                    if (root.cardSelected.cardType === "Equipment"){
+                        unequipItem(root.cardSelected);
                         root.cardSelected.useCard();
                         root.cardSelected = null;
                         combat_tooltip.text = "";
@@ -2246,7 +2226,77 @@ Rectangle {
                         monster_attack_timer.start();
                     }
                     else{
-                        combat_tooltip.text = "Not enough energy or resources to use this card.";
+                        if (root.cardSelected.attemptUseCard()){
+                            // use card effect
+                            var cardEffectArray = root.cardSelected.effectForParser.split(",");
+                            for (var i = 0; i < cardEffectArray.length; i++){
+                                var cardEffect = cardEffectArray[i];
+                                var cardType = cardEffect.split(":")[0]; // e.g. DAMAGE
+                                var amount = cardEffect.split(":")[1];  // e.g. 1+STRENGTH*1
+                                var baseAmount = amount.split("+")[0];
+                                var totalAmount;
+                                var specialScaling = amount.split("+").length === 1 ? amount.split("+")[0] : amount.split("+")[1]; // either 0 or e.g. STRENGTH*1
+                                var scaledAmount = 0;
+                                if (amount.split("+").length === 1){
+                                    scaledAmount = specialScaling;
+                                    totalAmount = baseAmount;
+                                }
+                                else{
+                                    var scalingStat = specialScaling.split("*")[0];
+                                    var scalingMultiplier = specialScaling.split("*")[1];
+                                    if (scalingStat === "STRENGTH"){ scaledAmount = player.strength; }
+                                    else if (scalingStat === "DEXTERITY"){ scaledAmount = player.dexterity; }
+                                    else if (scalingStat === "SPELLPOWER"){ scaledAmount = player.spellpower; }
+                                    else if (scalingStat === "RESILIENCE"){ scaledAmount = player.resilience; }
+                                    else if (scalingStat === "LUCK"){ scaledAmount = player.luck; }
+                                    scaledAmount *= scalingMultiplier;
+                                    totalAmount = Number(scaledAmount) + Number(baseAmount);
+                                }
+
+                                var combatLogText;
+                                // reduce damage
+                                if (cardType === "REDUCE"){
+                                    combatLogText = root.cardSelected.useCardText;
+                                    // replace placeholder strings with values
+                                    root.addToCombatLog(combatLogText);
+
+                                    var statusEffect = ["REDUCE",totalAmount,1];
+                                    ally.statusEffects.push(statusEffect);
+                                }
+                                else if (cardType === "HEAL"){
+                                    combatLogText = root.cardSelected.useCardText;
+                                    // replace placeholder strings with values
+                                    root.addToCombatLog(combatLogText);
+                                    var newHp = Number(ally.hp) + Number(totalAmount);
+                                    ally.hp = newHp > ally.maxHp ? ally.maxHp : newHp;
+                                }
+                                else if (cardType === "ENERGY"){
+                                    combatLogText = root.cardSelected.useCardText;
+                                    // replace placeholder strings with values
+                                    root.addToCombatLog(combatLogText);
+                                    var newEnergy = Number(ally.energy) + Number(totalAmount);
+                                    ally.energy = newEnergy > ally.maxEnergy ? ally.maxEnergy : newEnergy;
+                                }
+                                else if (cardType === "DRAW"){
+                                    combatLogText = root.cardSelected.useCardText;
+                                    // replace placeholder strings with values
+                                    root.addToCombatLog(combatLogText);
+                                    // draw totalAmount cards
+                                    for (var c = 0; c < Number(totalAmount); c++){
+                                        playerDrawCard();
+                                    }
+                                }
+                            }
+                            root.cardSelected.useCard();
+                            root.cardSelected = null;
+                            combat_tooltip.text = "";
+                            // pass turn to the monsters
+                            root.isPlayerTurn = false;
+                            monster_attack_timer.start();
+                        }
+                        else{
+                            combat_tooltip.text = "Not enough energy or resources to use this card.";
+                        }
                     }
                 }
             }

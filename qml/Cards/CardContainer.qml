@@ -17,6 +17,8 @@ Item {
     property int cardNumber: 0
     property bool selfCast: false
 
+    property string equipmentSlot:""
+
     property variant resourceNames: ["Metal", "Fur", "Medicinal Herb", "Arrow", "Magic Crystal"]
 
     Timer{
@@ -125,6 +127,46 @@ Item {
         cardContainer.destroy();
     }
 
+    // card border color based on rarity
+    function borderColor(){
+        if (power == 0){ // special
+            return "#7ae4f4";
+        }
+        else if(power == 1){ // common
+            return "#E5AD79";
+        }
+        else if(power == 2){ // uncommon
+            return "#bbbfc1";
+        }
+        else if(power == 3){ // rare
+            return "#ff4949";
+        }
+        else if(power == 4){ // epic
+            return "#d149ff";
+        }
+        else if(power == 5){ // legendary
+            return "#ffe349";
+        }
+    }
+
+    // card type color (little circle at the bottom left)
+    function cardTypeColor(){
+        if (cardType == "Spell"){
+            return "#7ae4f4";
+        }
+        else if(cardType == "Passive"){
+            return "#E5AD79";
+        }
+        else if(cardType == "Equipment"){
+            return "#bbbfc1";
+        }
+    }
+
+    // burn the card
+    function burnCardAnimation(){
+        burn_container_animation.start();
+    }
+
     MouseArea{
         anchors.fill: parent
         hoverEnabled: true
@@ -143,54 +185,85 @@ Item {
         }
     }
 
-    Column{
-        id: stats
+    Rectangle{
         anchors.fill: parent
-        spacing: 5
-        anchors.leftMargin: 5
-        anchors.rightMargin: 5
-        anchors.topMargin: 5
+        radius: 8
+        color: borderColor()
+        border.width: 2
+        border.color: "black"
 
-        Text{
-            id: cardName
-            text: displayName
-            font.pointSize: text.length > 10 ? root.tinestFontSize : root.tinyFontSize
-            font.family: root.textFont
-            color: root.textColor
-            anchors.horizontalCenter: parent.horizontalCenter
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.WordWrap
-            width: parent.width-10
-            font.bold: true
-        }
-        Text{
-            id: card_type
-            text: cardType
-            font.pointSize: root.tinestFontSize
-            font.family: root.textFont
-            color: root.textColor
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
-        Text{
-            id: card_class
-            text: cardClass
-            font.pointSize: root.tinestFontSize
-            font.family: root.textFont
-            color: root.textColor
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
         Rectangle{
-            color: "transparent"
-            width: 10
-            height: 1
-        }
-        Row{
-            id: card_costs
-            height: 30
-            spacing: 10
-            anchors.horizontalCenter: parent.horizontalCenter
+            id: card_color
+            anchors.fill: parent
+            anchors.margins: 4
+            radius: 8
+            border.width: 2
+            border.color: "black"
+            color: cardContainer.cardColor
+
+            ColorAnimation {
+                id: burn_container_animation
+                from: card_color.color
+                to: "red"
+                duration: 800
+                running: false
+                onStopped: {
+                    cardContainer.destroy();
+                }
+            }
+
+            Column{
+                id: stats
+                anchors.fill: parent
+                spacing: 3
+                anchors.leftMargin: 5
+                anchors.rightMargin: 5
+                anchors.topMargin: 2
+
+                Text{
+                    id: cardName
+                    text: displayName
+                    font.pointSize: text.length > 10 ? root.tinestFontSize : root.tinyFontSize
+                    font.family: root.textFont
+                    color: root.textColor
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WordWrap
+                    width: parent.width-10
+                    font.bold: true
+                }
+                Text{
+                    id: card_type
+                    text: cardType
+                    font.pointSize: root.tinestFontSize
+                    font.family: root.textFont
+                    color: root.textColor
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                Text{
+                    id: card_class
+                    text: cardClass
+                    font.pointSize: root.tinestFontSize
+                    font.family: root.textFont
+                    color: root.textColor
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                Rectangle{
+                    color: "transparent"
+                    width: 10
+                    height: 1
+                }
+                Row{
+                    id: card_costs
+                    height: 30
+                    spacing: 10
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+            }
         }
     }
+
+
 
     Component.onCompleted: {
         var costString = cost.split(", ");
@@ -220,26 +293,7 @@ Item {
         radius: width/2
         border.color: "black"
         border.width: 1
-        color: {
-            if (power == 0){
-
-            }
-            else if(power == 1){
-                return "#663300";
-            }
-            else if(power == 2){
-
-            }
-            else if(power == 3){
-
-            }
-            else if(power == 4){
-
-            }
-            else if(power == 5){
-
-            }
-        }
+        color: cardTypeColor()
     }
     Text{
         anchors.bottom: parent.bottom

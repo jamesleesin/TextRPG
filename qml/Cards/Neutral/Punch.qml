@@ -20,16 +20,44 @@ Rectangle {
     height: 160
     radius: 8
     border.width: 3
-    border.color: card_container != undefined ? card_container.selected ? "yellow" : "black" : "black"
-    gradient: Gradient{
-        GradientStop { position: 0.0; color: card_container != undefined ? card_container.getGradientColor1() : "#ffffff" }
-        GradientStop { position: 1.0; color: card_container != undefined ? card_container.getGradientColor2() : "#ffffff" }
-    }
+    border.color: "black"
 
     // if card container is destroyed then destroy this as well
     onChildrenChanged: {
         punch.destroy();
     }
+
+    // call this when card is drawn
+    function fadeIn(){
+        fade_in_animation.start();
+    }
+    NumberAnimation on opacity {
+        id: fade_in_animation
+        loops: 1
+        from: 0; to: 1
+        duration: 800
+        running: false
+        onStopped: {
+            if (burnThis){
+                burnCard();
+            }
+        }
+    }
+
+    property bool burnThis: false
+    // call this to discard/burn the cardClass:
+    function burnCard(){
+        burn_animation.start();
+        card_container.burnCardAnimation();
+    }
+    NumberAnimation on opacity {
+        id: burn_animation
+        loops: 1
+        from: 1; to: 0
+        duration: 800
+        running: false
+    }
+
 
     CardContainer{
         id: card_container

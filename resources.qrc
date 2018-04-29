@@ -38,5 +38,8 @@
         <file>qml/NPC/Elven/Alva.qml</file>
         <file>qml/Quests/Elven/HerbCollecting.qml</file>
         <file>qml/Quests/QuestContainer.qml</file>
+        <file>qml/Cards/Elven/NaimersBow.qml</file>
+        <file>qml/Cards/Neutral/Think.qml</file>
+        <file>qml/Cards/Neutral/CopperHelmet.qml</file>
     </qresource>
 </RCC>

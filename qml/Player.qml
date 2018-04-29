@@ -15,7 +15,7 @@ Rectangle {
     property int resilience: 0
     property int luck: 0
 
-    // resources
+    // player resources
     property int maxHp: 0
     property int hp: 0
     property int maxEnergy:0
@@ -36,6 +36,9 @@ Rectangle {
     property variant resourcePlurals: ["pieces of metal", "chunks of fur", "medicinal herbs", "arrows", "magic crystals"]
     property variant playerResourceCount: [0, 0, 0, 0, 0]
 
+    // equipment slots
+    // Head, Body, Gloves, Boots, Weapon, Accessory
+    property variant playerEquipmentSlots: []
 
     // array of arrays in the for [effect,amount,turnsLeft]
     // [REDUCE,1,1] = +1 damage reduction for 1 use
@@ -155,5 +158,28 @@ Rectangle {
         }
     }
 
+    Connections{
+        target: root
+        onEquipItem:{
+            // calculate passive bonuses from equipment
+            var effect = card.effectForParser;
+            var stat = effect.split(":")[0];
+            var amt = effect.split(":")[1];
+            if (stat === "MAXHP"){
+                maxHp += Number(amt);
+                hp += Number(amt);
+            }
+        }
+        onUnequipItem:{
+            // calculate passive bonuses from equipment
+            var effect = card.effectForParser;
+            var stat = effect.split(":")[0];
+            var amt = effect.split(":")[1];
+            if (stat === "MAXHP"){
+                maxHp -= Number(amt);
+                if (hp > maxHp){ hp = maxHp; }
+            }
+        }
+    }
 
 }

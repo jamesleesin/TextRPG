@@ -79,7 +79,10 @@ DISTFILES += \
     qml/NPC/Alva.qml \
     qml/NPC/Elven/Alva.qml \
     qml/Quests/QuestContainer.qml \
-    qml/Quests/Elven/HerbCollecting.qml
+    qml/Quests/Elven/HerbCollecting.qml \
+    qml/Cards/Elven/NaimersBow.qml \
+    qml/Cards/Neutral/Think.qml \
+    qml/Cards/Neutral/CopperHelmet.qml
 
 RESOURCES += \
     resources.qrc

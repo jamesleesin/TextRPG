@@ -9,7 +9,9 @@ Rectangle {
     property string fullDescription: "Always be prepared before going out to hunt! Collect 5 Medicinal Herbs and bring them to Alva."
     property string reward: "10g"
 
-    width: 500
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.rightMargin: 10
     height: 160
     radius: 8
     border.width: 3
