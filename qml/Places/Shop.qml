@@ -62,6 +62,8 @@ Item {
                                 else { res.push(player.playerResourceCount[i]); }
                             }
                             player.playerResourceCount = res;
+                            // update quest progresses
+                            root.updateAllQuests();
                         }
                     }
                     onEntered: {
@@ -136,6 +138,8 @@ Item {
                                 else { res.push(player.playerResourceCount[i]); }
                             }
                             player.playerResourceCount = res;
+                            // update quest progresses
+                            root.updateAllQuests();
                         }
                     }
                     onEntered: {

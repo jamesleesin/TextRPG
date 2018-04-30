@@ -4,9 +4,11 @@ Item {
     id: npc
     property string name: ""
     property string greeting: ""
+    property string doneQuestText: ""
+    property string questOffered: ""
 
     Column{
-        id: npc_container
+        id: npc_text_container
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
@@ -21,7 +23,7 @@ Item {
             font.pointSize: root.mediumFontSize
             font.family: root.textFont
             color: root.textColor
-            width: npc_container.width-60
+            width: npc_text_container.width-60
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             font.bold: true
@@ -34,9 +36,8 @@ Item {
             color: root.textColor
             anchors.left: parent.left
             anchors.leftMargin: 20
-            width: npc_container.width-60
+            width: npc_text_container.width-60
             wrapMode: Text.WordWrap
         }
     }
-
 }

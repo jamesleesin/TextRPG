@@ -50,7 +50,7 @@ Item {
             id: button
             property string buttonText: ""
             property string linkTo: ""
-            text: buttonText
+          text: buttonText
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.minimumWidth: (place_buttons.width - (parent.height/16)*(place_buttons.children.length))/place_buttons.children.length
@@ -196,14 +196,32 @@ Item {
                 }
             }
             onClicked: {
+                // clear npc_container
+                for (var n = 1; n < npc_container.children.length; n++){
+                    npc_container.children[n].destroy();
+                }
+
                 console.log("talk with " + npcName);
                 var npcString = "qrc:/qml/NPC/" + place.worldLocation + "/" + npcName + ".qml";
-                console.log(npcString);
                 var npcItem = Qt.createComponent(npcString);
                 var newNPC = npcItem.createObject(npc_container);
                 place.currentlyTalkingTo = newNPC;
+                // check if there is a quest offered.
                 if (newNPC.questOffered !== ""){
-                    offeredQuest();
+                    // check to see if the player already accepted the quest
+                    root.checkQuestStatus(place.currentlyTalkingTo.questOffered.split("/")[1]);
+                }
+                // look through all quests to see if any can be redeemed with this NPC
+                for (var q = 0; q < quests.children.length; q++){
+                    console.log (quests.children[q].name + " " + quests.children[q].questComplete);
+                    if (quests.children[q].questComplete){
+                        if (quests.children[q].redeemAt === place.currentlyTalkingTo.name){
+                            // create button for redeeming
+                            var redeemBut = redeem_quest_button.createObject(place_buttons);
+                            redeemBut.questToRedeem = quests.children[q];
+                            redeemBut.questToRedeemText = quests.children[q].displayName;
+                        }
+                    }
                 }
             }
         }
@@ -215,6 +233,7 @@ Item {
         Button{
             id: questAcceptButton
             property string questName: ""
+            property string issuer: ""
             text: "Accept Quest"
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -229,9 +248,13 @@ Item {
                 }
             }
             onClicked: {
+                // clear npc_container
+                for (var n = 1; n < npc_container.children.length; n++){
+                    npc_container.children[n].destroy();
+                }
                 setUpPlace();
                 // call root to add the quest object to the player
-                root.acceptQuest(questName);
+                root.acceptQuest(questName, issuer);
             }
         }
     }
@@ -255,6 +278,78 @@ Item {
             }
             onClicked: {
                 setUpPlace();
+                // clear npc_container
+                for (var n = 1; n < npc_container.children.length; n++){
+                    npc_container.children[n].destroy();
+                }
+            }
+        }
+    }
+    // back button if there is no quest from NPC
+    Component{
+        id: back_button
+
+        Button{
+            id: backButton
+            text: "Back"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumWidth: (place_buttons.width - (parent.height/16)*(place_buttons.children.length))/place_buttons.children.length
+            style: ButtonStyle {
+                label: Text {
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    font.family:  root.textFont
+                    font.pointSize: root.mediumFontSize
+                    text: control.text
+                }
+            }
+            onClicked: {
+                setUpPlace();
+                // clear npc_container
+                for (var n = 1; n < npc_container.children.length; n++){
+                    npc_container.children[n].destroy();
+                }
+            }
+        }
+    }
+
+    // redeem quest button
+    Component{
+        id: redeem_quest_button
+
+        Button{
+            id: redeemQuestButton
+            property variant questToRedeem: null
+            property string questToRedeemText: ""
+            text: "Redeem " + questToRedeemText
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumWidth: (place_buttons.width - (parent.height/16)*(place_buttons.children.length))/place_buttons.children.length
+            style: ButtonStyle {
+                label: Text {
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    font.family:  root.textFont
+                    font.pointSize: root.mediumFontSize
+                    text: control.text
+                }
+            }
+
+            onClicked: {
+                // give rewards
+                console.log("Gain " + questToRedeem.reward);
+                var rewardArray = questToRedeem.rewardForParser;
+                var goldGain = rewardArray[0];
+                var expGain = rewardArray[1];
+                var lootGain = [];
+                for(var l = 2; l < rewardArray.length; l++){
+                    lootGain.push(rewardArray[l]);
+                }
+                root.questComplete(goldGain, expGain, lootGain);
+                // destroy quest
+                questToRedeem.destroy();
+                redeemQuestButton.destroy();
             }
         }
     }
@@ -411,13 +506,11 @@ Item {
         }
     }
 
-    function offeredQuest(){
+    // clear the button options
+    function clearButtons(){
         for (var n = 0; n < place_buttons.children.length; n++){
             place_buttons.children[n].destroy();
         }
-        var acceptBut = quest_accept.createObject(place_buttons);
-        acceptBut.questName = place.currentlyTalkingTo.questOffered;
-        var declineBut = quest_decline.createObject(place_buttons);
     }
 
     function setUpPlace(){
@@ -463,5 +556,20 @@ Item {
 
     Component.onCompleted: {
         setUpPlace();
+    }
+
+    Connections{
+        target: root
+        onQuestFound:{
+            clearButtons();
+            var backBut = back_button.createObject(place_buttons);
+        }
+        onQuestNotFound:{
+            clearButtons();
+            var acceptBut = quest_accept.createObject(place_buttons);
+            acceptBut.questName = place.currentlyTalkingTo.questOffered;
+            acceptBut.issuer = place.currentlyTalkingTo.name;
+            var declineBut = quest_decline.createObject(place_buttons);
+        }
     }
 }

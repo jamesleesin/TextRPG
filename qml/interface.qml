@@ -83,7 +83,13 @@ Rectangle {
     signal changeLocation(string loc)
 
     // quests
-    signal acceptQuest(string quest)
+    signal acceptQuest(string quest, string issuer)
+    signal questFound() // player already has this quest
+    signal questNotFound()  // player hasnt accepted this quest yet
+    signal checkQuestStatus(string quest) // check to see if player has the quest or not
+    signal updateAllQuests()
+    signal questComplete(int goldGain, int expGain, variant lootGain)
+
 
     /* Return functions for player information */
     function getPlayerName(){
@@ -1158,7 +1164,7 @@ Rectangle {
         }
     }
 
-    // inventory management
+    // quest interfac, shows a list of quests
     Rectangle{
         id: quest_interface
         anchors.left: stats_panel.right
@@ -1185,12 +1191,128 @@ Rectangle {
 
         ScrollView{
             anchors.fill: parent
-            anchors.topMargin: 10
+            anchors.topMargin: 10 + quest_label.height + quest_label.anchors.topMargin
             anchors.leftMargin: 20
 
             ColumnLayout{
                 id: quests
                 width: quest_interface.width-30
+            }
+        }
+    }
+
+    // on quest completion, show rewards
+    Rectangle{
+        id: quest_rewards
+        anchors.left: stats_panel.right
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        color: "white"
+        border.width: 2
+        border.color: "black"
+        visible: false
+        property int goldGain: 0
+        property int experienceGained: 0
+        property variant lootGained: []
+
+        Column{
+            anchors.centerIn: parent
+            spacing: 20
+
+            Text{
+                id: quest_rewards_text
+                text: "Quest Complete!"
+                font.pointSize: root.mediumFontSize
+                font.family: root.textFont
+                color: root.textColor
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Text{
+                id: quest_rewards_gold
+                text: "You gain " + quest_rewards.goldGain + " gold!"
+                font.pointSize: root.mediumFontSize
+                font.family: root.textFont
+                color: root.textColor
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Text{
+                id: quest_rewards_experience
+                text: "You gain " + quest_rewards.experienceGained + " experience."
+                font.pointSize: root.mediumFontSize
+                font.family: root.textFont
+                color: root.textColor
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Rectangle{
+                id: quest_rewards_items_container
+                width: 300
+                height: 400
+                color: "white"
+                border.width: 2
+                border.color: "black"
+                anchors.horizontalCenter: parent.horizontalCenter
+                visible: quest_rewards.lootGained.length == 0 ? false : true
+
+                ScrollView{
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
+
+                    GridLayout{
+                        id: quest_rewards_items
+                        width: quest_rewards_items_container.width - 30
+                        columns: 2
+                        columnSpacing: -10
+                        rowSpacing: 30
+                    }
+                }
+            }
+            // ok button
+            Rectangle{
+                id: confirm_quest_loot_button
+                width: confirm_quest_loot_button_text.width+10
+                height: confirm_quest_loot_button_text.height+8
+                color: "white"
+                border.width: 1
+                border.color: "black"
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                Text{
+                    id: confirm_quest_loot_button_text
+                    text: "Accept"
+                    font.pointSize: root.largeFontSize
+                    font.family: root.textFont
+                    color: root.textColor
+                    anchors.centerIn: parent
+                }
+
+                MouseArea{
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked:{
+                        console.log("Accept Loot");
+                        for (var i = 0; i < quest_rewards.lootGained.length; i++){
+                            root.addToInventory(quest_rewards.lootGained[i]);
+                        }
+                        player.gold += quest_rewards.goldGain;
+                        player.experienceToNextLevel -= quest_rewards.experienceGained;
+
+                        quest_rewards.goldGain = 0;
+                        quest_rewards.experienceGained = 0
+                        quest_rewards.lootGained = [];
+                        for (var c = 0; c < quest_rewards_items.children.length; c++){
+                            quest_rewards_items.children[c].destroy();
+                        }
+                        quest_rewards.visible = false;
+                    }
+                    onEntered: {
+                        parent.color = "lightgrey";
+                    }
+                    onExited: {
+                        parent.color = "white";
+                    }
+                }
             }
         }
     }
@@ -2437,6 +2559,8 @@ Rectangle {
 
                 showLootGained();
             }
+            // update quest progresses
+            updateAllQuests();
         }
         onShowLootGained:{
             combat_outcome.visible = true;
@@ -2465,6 +2589,8 @@ Rectangle {
                     player.playerInventory.push(itemArray[i]);
                 }
             }
+            // update quest progresses
+            updateAllQuests();
         }
 
         // change location
@@ -2554,6 +2680,39 @@ Rectangle {
             var questString = "qrc:/qml/Quests/" + quest + ".qml";
             var questItem = Qt.createComponent(questString);
             var newQuest = questItem.createObject(quests);
+            newQuest.gotQuestFrom = issuer;
+            // update quest progresses
+            root.updateAllQuests();
+        }
+        // check quest status. return true if player already accepted quest
+        onCheckQuestStatus:{
+            for (var q = 0; q < quests.children.length; q++){
+                console.log("Quests: " + quests.children[q].name);
+                console.log("check for " + quest);
+                console.log(quests.children[q].name === quest);
+                if (quests.children[q].name === quest){ questFound(); return; }
+            }
+            questNotFound();
+        }
+        // update progress of all quests
+        onUpdateAllQuests:{
+            for (var q = 0; q < quests.children.length; q++){
+                quests.children[q].updateProgress();
+            }
+        }
+        // get quest rewards
+        onQuestComplete:{
+            quest_rewards.goldGain = goldGain;
+            quest_rewards.experienceGained = expGain;
+            // for loot gained push it in the array and show it
+            for (var l = 0; l < lootGain.length; l++){
+                quest_rewards.lootGained.push(lootGain[l]);
+                var itemString = "qrc:/qml/Cards/" + lootGain[l] + ".qml";
+                // create new card and load it into loot items
+                var item = Qt.createComponent(itemString);
+                var newCard = item.createObject(quest_rewards_items);
+            }
+            quest_rewards.visible = true;
         }
     }
 }
