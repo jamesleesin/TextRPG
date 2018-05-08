@@ -2,20 +2,21 @@ import QtQuick 2.0
 import "../"
 
 Rectangle {
-    id: herbcollecting
-    property string name: "HerbCollecting"
-    property string displayName: "Herb Collecting"
-    property string shortDescription: "Collect 5 Medicinal Herbs."
-    property string fullDescription: "Always be prepared before going out to hunt! Collect 5 Medicinal Herbs and bring them to Alva."
-    property string reward: "10g, 20XP"
-    property variant rewardForParser: [10,20]
-    property bool repeatable: false
-    property string questType: "COLLECT"
-    property variant questObjective: ["Medicinal Herb:5"]
+    id: wolfhunter
+    property string name: "WolfHunter"
+    property string displayName: "Wolf Hunter"
+    property string shortDescription: "Defeat 5 wolves."
+    property string fullDescription: "The wolf population has grown too large of late. Help bring down the population a little to restore balance."
+    property string reward: "50g, 50XP"
+    property variant rewardForParser: [50,50]
+    property bool repeatable: true
+    property string questType: "KILL"
+    property variant questObjective: ["Wolf:5"]
     property string redeemAt: "Alva"
+    property variant numToKillRemaining: [5]
 
     onChildrenChanged: {
-        herbcollecting.destroy();
+        wolfhunter.destroy();
     }
 
     /////////////// dont change below here ///////////////////////////////
@@ -51,6 +52,7 @@ Rectangle {
         questType: parent.questType
         questObjective: parent.questObjective
         redeemAt: parent.redeemAt
+        numToKillRemaining: parent.numToKillRemaining
         anchors.fill: parent
     }
 }

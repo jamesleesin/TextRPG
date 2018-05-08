@@ -11,5 +11,7 @@ Item {
         links:["Eleren"]
         linkAltText: ["Back Outside"]
         worldLocation: "Elven"
+        npcList: ["Naimer"]
     }
+
 }

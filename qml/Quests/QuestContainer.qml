@@ -19,6 +19,7 @@ Item {
     property string questType: ""
     property variant questObjective: []
     property bool questComplete: false
+    property variant numToKillRemaining:[]
 
     height: desc.height+20
 
@@ -26,8 +27,8 @@ Item {
     // updates it to something like (0/5) or 22%
     function updateProgress(){
         var returnProgress = "";
+        var complete = true; // set true first
         if (questType === "COLLECT"){
-            var complete = true; // set true first
             for (var q = 0; q < questObjective.length; q++){
                 if (q != 0) returnProgress += ", ";
                 var what = questObjective[q].split(":")[0];
@@ -53,14 +54,53 @@ Item {
                 if (quantityHave < quantityNeeded){ complete = false; }
                 returnProgress += quantityHave + "/" + quantityNeeded + ")";
             }
-            questComplete = complete;
-            questProgress = returnProgress;
+        }
+        else if (questType === "FIND"){
+            var numItemsToFind = questObjective.length;
+            var numFound = 0;
+            for (var qo = 0; qo < questObjective.length; qo++){
+                if (qo != 0) returnProgress += ", ";
+                var whatItem = questObjective[qo];
+                returnProgress += whatItem + " (";
+                // look in player inventory for the item
+                if (player.doesPlayerHaveThis(whatItem)){
+                    numFound++;
+                    returnProgress += "1/1)";
+                }
+                else{
+                    returnProgress += "0/1)";
+                }
+            }
+            if (numFound >= numItemsToFind){
+                complete = true;
+            }
+        }
+        else if (questType === "KILL"){
+            // for this check we just check if kills remaining is > 0.
+            // we decrease numToKillRemaining from monsterKilled in interface.qml
+            for (var m = 0; m < questObjective.length; m++){
+                if (m != 0) returnProgress += ", ";
 
-            return questComplete;
+                var monsterToKill = questObjective[m].split(":")[0];
+                var killsNeeded = questObjective[m].split(":")[1];
+                //console.log(numToKillRemaining);
+                var killsRemaining = numToKillRemaining[m];
+
+                returnProgress += monsterToKill + " (";
+
+                // set false if any of the quantities are not met
+                if (killsRemaining > 0){ complete = false; }
+                returnProgress += (killsNeeded - killsRemaining) + "/" + killsNeeded + ")";
+            }
+        }
+
+        else{
+            complete = false;
         }
 
         questProgress = returnProgress;
-        return false;
+        questComplete = complete;
+        return complete;
     }
 
 

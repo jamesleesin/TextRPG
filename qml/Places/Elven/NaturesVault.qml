@@ -3,7 +3,7 @@ import "../"
 import "../../NPC"
 
 Item {
-    id: eleren
+    id: naturesvault
     anchors.fill: parent
 
     Shop{

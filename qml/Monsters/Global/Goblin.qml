@@ -82,6 +82,7 @@ Rectangle{
         sp: parent.sp
         goldDrops: parent.goldDrops
         lootDrops: parent.lootDrops
+        resourceDrops: parent.resourceDrops
         basicAttack: parent.basicAttack
         missAttack: parent.missAttack
         specialAttackArray: parent.specialAttackArray

@@ -26,8 +26,8 @@ Item {
     property string combatOutcomeLocation: ""
     property variant combatOutcomeLinks:[]
 
+    // callbacks (usually not needed for actually game stuff)
     property string requireTextEntry: ""
-
     property bool setCallback: false
     signal placeCallback(string variable)
 

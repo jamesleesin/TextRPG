@@ -82,7 +82,10 @@ DISTFILES += \
     qml/Quests/Elven/HerbCollecting.qml \
     qml/Cards/Elven/NaimersBow.qml \
     qml/Cards/Neutral/Think.qml \
-    qml/Cards/Neutral/CopperHelmet.qml
+    qml/Cards/Neutral/CopperHelmet.qml \
+    qml/Quests/Elven/NaimersLostBow.qml \
+    qml/NPC/Elven/Naimer.qml \
+    qml/Quests/Elven/WolfHunter.qml
 
 RESOURCES += \
     resources.qrc

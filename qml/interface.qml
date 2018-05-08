@@ -89,7 +89,7 @@ Rectangle {
     signal checkQuestStatus(string quest) // check to see if player has the quest or not
     signal updateAllQuests()
     signal questComplete(int goldGain, int expGain, variant lootGain)
-
+    signal updateMonsterKilledQuests(variant monster)
 
     /* Return functions for player information */
     function getPlayerName(){
@@ -107,6 +107,7 @@ Rectangle {
     function getPlayerLuck(){
         return player.luck;
     }
+
 
     Component.onCompleted: {
        // var locationString = "qrc:/qml/Places/Global/GameIntro.qml";
@@ -923,7 +924,7 @@ Rectangle {
             Text{
                 id: combat_loot_resources
                 text: {
-                    if (combat_outcome.victory){
+                    if (combat_outcome.victory && !combat_outcome.fromDungeon){
                         // look for last resource dropped
                         var last = [];
                         for (var a = 0; a < combat_outcome.resourcesSoFar.length; a++){
@@ -947,7 +948,7 @@ Rectangle {
                                 }
                             }
                         }
-                        return resourcesDropped;
+                        return resourcesDropped + ".";
                     }
                     else return "";
                 }
@@ -959,12 +960,11 @@ Rectangle {
             Rectangle{
                 id: combat_loot_items_container
                 width: 300
-                height: 400
+                height: 200
                 color: "white"
                 border.width: 2
                 border.color: "black"
                 anchors.horizontalCenter: parent.horizontalCenter
-                visible: combat_outcome.lootSoFar.length == 0 ? false : true
 
                 ScrollView{
                     anchors.fill: parent
@@ -1011,12 +1011,14 @@ Rectangle {
                         for (var r = 0; r < combat_outcome.resourcesSoFar.length; r++){
                             player.playerResourceCount[r] += combat_outcome.resourcesSoFar[r];
                         }
-                        if (combat_outcome.victory){
-                            place_container.children[0].children[0].victory();
-                        }
-                        else{
-                            // load last save or resurrect in
-                            place_container.children[0].children[0].defeat();
+                        if (!combat_outcome.fromDungeon){
+                            if (combat_outcome.victory){
+                                place_container.children[0].children[0].victory();
+                            }
+                            else{
+                                // load last save or resurrect in
+                                place_container.children[0].children[0].defeat();
+                            }
                         }
                         combat_outcome.visible = false;
                         combat_outcome.victory = false;
@@ -2559,6 +2561,9 @@ Rectangle {
 
                 showLootGained();
             }
+
+            // update quests dealing with monsters being killed
+            updateMonsterKilledQuests(monster);
             // update quest progresses
             updateAllQuests();
         }
@@ -2567,13 +2572,18 @@ Rectangle {
 
             // load loot into combat_loot_items
             if (combat_outcome.lootSoFar.length > 0){
+                combat_loot_items_container.visible = true;
                 var itemArray = combat_outcome.lootSoFar;
                 for (var i = 0; i < itemArray.length; i++){
                     var itemString = "qrc:/qml/Cards/" + itemArray[i] + ".qml";
                     // create new card and load it into loot items
                     var item = Qt.createComponent(itemString);
                     var newCard = item.createObject(combat_loot_items);
+                    console.log("Show item dropped: " + newCard.displayName);
                 }
+            }
+            else{
+               combat_loot_items_container.visible = false;
             }
         }
 
@@ -2713,6 +2723,32 @@ Rectangle {
                 var newCard = item.createObject(quest_rewards_items);
             }
             quest_rewards.visible = true;
+        }
+        // when a monster is killed, look for and update quests related to said monster
+        onUpdateMonsterKilledQuests:{
+            for (var q = 0; q < quests.children.length; q++){
+                // see if its a KILL quest
+                if (quests.children[q].questType === "KILL"){
+                    for (var k = 0; k < quests.children[q].questObjective.length; k++){
+                        // then check if the objective matches any of the kills
+                        var needToKillName = quests.children[q].questObjective[k].split(":")[0];
+                        var needToKillNum = quests.children[q].questObjective[k].split(":")[1];
+                        if (needToKillNum > 0){
+                            if (monster.name === needToKillName){
+                                // decrease num needed by 1
+                                var newNumToKillArray = [];
+                                for (var n = 0; n < quests.children[q].numToKillRemaining.length; n++){
+                                    var adjustment = n == k ? 1 : 0;
+                                    newNumToKillArray.push(quests.children[q].numToKillRemaining[n] - adjustment);
+                                }
+                                quests.children[q].numToKillRemaining = newNumToKillArray;
+                                // update progress
+                                quests.children[q].updateProgress();
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

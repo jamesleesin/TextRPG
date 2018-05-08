@@ -21,7 +21,7 @@ Rectangle{
 
     // drops
     property string goldDrops: "10-14"
-    property string resourceDrops: ""
+    property string resourceDrops: "1:3:Fur"
     property string lootDrops:"1-Elven/NaimersBow"
 
     // combat
@@ -81,6 +81,7 @@ Rectangle{
         sp: parent.sp
         goldDrops: parent.goldDrops
         lootDrops: parent.lootDrops
+        resourceDrops: parent.resourceDrops
         basicAttack: parent.basicAttack
         missAttack: parent.missAttack
         specialAttackArray: parent.specialAttackArray

@@ -73,6 +73,16 @@ Rectangle {
         return damageAdjusted > 0 ? damageAdjusted : 0;
     }
 
+    // look through player inventory and check if they have this item
+    // itemName is of the form "Elven/NaimersBow"
+    function doesPlayerHaveThis(itemName){
+        for (var check = 0; check < player.playerInventory.length; check++){
+            console.log("compare " + player.playerInventory[check] + " with " + itemName);
+            if (player.playerInventory[check] === itemName){ return true; }
+        }
+        return false;
+    }
+
     NumberAnimation on x {
         id: shake_animation
         loops: 3

@@ -2,20 +2,20 @@ import QtQuick 2.0
 import "../"
 
 Rectangle {
-    id: herbcollecting
-    property string name: "HerbCollecting"
-    property string displayName: "Herb Collecting"
-    property string shortDescription: "Collect 5 Medicinal Herbs."
-    property string fullDescription: "Always be prepared before going out to hunt! Collect 5 Medicinal Herbs and bring them to Alva."
-    property string reward: "10g, 20XP"
-    property variant rewardForParser: [10,20]
+    id: naimerslostbow
+    property string name: "NaimersLostBow"
+    property string displayName: "Naimer's Lost Bow"
+    property string shortDescription: "Find Naimer's lost bow and return it to him."
+    property string fullDescription: "The old man Naimer lost his precious bow many years ago on a hunting trip. He would like to hold it again. Find his bow and return it to him."
+    property string reward: "25g, 40XP"
+    property variant rewardForParser: [25,40]
     property bool repeatable: false
-    property string questType: "COLLECT"
-    property variant questObjective: ["Medicinal Herb:5"]
-    property string redeemAt: "Alva"
+    property string questType: "FIND"
+    property variant questObjective: ["Elven/NaimersBow"]
+    property string redeemAt: "Naimer"
 
     onChildrenChanged: {
-        herbcollecting.destroy();
+        naimerslostbow.destroy();
     }
 
     /////////////// dont change below here ///////////////////////////////

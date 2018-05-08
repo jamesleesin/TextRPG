@@ -41,5 +41,8 @@
         <file>qml/Cards/Elven/NaimersBow.qml</file>
         <file>qml/Cards/Neutral/Think.qml</file>
         <file>qml/Cards/Neutral/CopperHelmet.qml</file>
+        <file>qml/Quests/Elven/NaimersLostBow.qml</file>
+        <file>qml/NPC/Elven/Naimer.qml</file>
+        <file>qml/Quests/Elven/WolfHunter.qml</file>
     </qresource>
 </RCC>
