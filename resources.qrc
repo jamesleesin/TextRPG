@@ -44,5 +44,10 @@
         <file>qml/Quests/Elven/NaimersLostBow.qml</file>
         <file>qml/NPC/Elven/Naimer.qml</file>
         <file>qml/Quests/Elven/WolfHunter.qml</file>
+        <file>qml/NPC/Elven/Eomund.qml</file>
+        <file>qml/Places/Elven/EomundsStudy.qml</file>
+        <file>qml/Places/Elven/TheLibrary.qml</file>
+        <file>qml/NPC/Elven/Nynia.qml</file>
+        <file>qml/Quests/Elven/LivingHistory.qml</file>
     </qresource>
 </RCC>

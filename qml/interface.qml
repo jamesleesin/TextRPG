@@ -90,6 +90,7 @@ Rectangle {
     signal updateAllQuests()
     signal questComplete(int goldGain, int expGain, variant lootGain)
     signal updateMonsterKilledQuests(variant monster)
+    signal checkForTalkToQuest(variant npcTalkedTo)
 
     /* Return functions for player information */
     function getPlayerName(){
@@ -2723,6 +2724,22 @@ Rectangle {
                 var newCard = item.createObject(quest_rewards_items);
             }
             quest_rewards.visible = true;
+        }
+        // when a NPC with checkForTalkToQuest() is approached, check for quests to complete
+        onCheckForTalkToQuest:{
+            for (var q = 0; q < quests.children.length; q++){
+                // see if its a TALKTO quest
+                if (quests.children[q].questType === "TALKTO"){
+                    // grab the NPC name
+                    var npcToTalkTo = quests.children[q].questObjective[0];
+                    // check if the objective NPC matches the current NPC
+                    if (npcToTalkTo === npcTalkedTo.name){
+                        quests.children[q].talkedToNPCYet = true;
+                        quests.children[q].updateProgress();
+                        console.log("quest progress now " + quests.children[q].talkedToNPCYet);
+                    }
+                }
+            }
         }
         // when a monster is killed, look for and update quests related to said monster
         onUpdateMonsterKilledQuests:{

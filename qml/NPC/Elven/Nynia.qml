@@ -2,11 +2,11 @@ import QtQuick 2.0
 import "../"
 
 Rectangle {
-    id: naimer
-    property string name: "Naimer"
-    property string greeting: "The old man looks up as you approach him."
-    property string doneQuestText: ""
-    property string questOffered: "Elven/NaimersLostBow"
+    id: nynia
+    property string name: "Bartender Nynia"
+    property string greeting: "How can I help you?"
+    property string doneQuestText: "Isn't Eomund incredible? I don't know how he can just sit there and read all day. He might not look it, but he loves talking about Elvish history. Go see him again if you want to learn more!"
+    property string questOffered: "Elven/LivingHistory"
 
     width: parent.width
     height: npc.height

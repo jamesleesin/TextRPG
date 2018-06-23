@@ -77,7 +77,7 @@ Rectangle {
     // itemName is of the form "Elven/NaimersBow"
     function doesPlayerHaveThis(itemName){
         for (var check = 0; check < player.playerInventory.length; check++){
-            console.log("compare " + player.playerInventory[check] + " with " + itemName);
+            console.log("compare " + player.playerInventory[check] + " with " + itemName + ": " + (player.playerInventory[check] === itemName));
             if (player.playerInventory[check] === itemName){ return true; }
         }
         return false;

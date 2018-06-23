@@ -196,6 +196,10 @@ Item {
                 }
             }
             onClicked: {
+                // clear buttons and add a back
+                clearButtons();
+                var backBut = back_button.createObject(place_buttons);
+
                 // clear npc_container
                 for (var n = 1; n < npc_container.children.length; n++){
                     npc_container.children[n].destroy();
@@ -206,6 +210,12 @@ Item {
                 var npcItem = Qt.createComponent(npcString);
                 var newNPC = npcItem.createObject(npc_container);
                 place.currentlyTalkingTo = newNPC;
+
+                // trigger talk to quest completions
+                if (newNPC.hasTalkToQuest){
+                    newNPC.checkForTalkToQuest();
+                }
+
                 // check if there is a quest offered.
                 if (newNPC.questOffered !== ""){
                     // check to see if the player already accepted the quest
@@ -223,6 +233,7 @@ Item {
                         }
                     }
                 }
+
             }
         }
     }

@@ -85,7 +85,13 @@ DISTFILES += \
     qml/Cards/Neutral/CopperHelmet.qml \
     qml/Quests/Elven/NaimersLostBow.qml \
     qml/NPC/Elven/Naimer.qml \
-    qml/Quests/Elven/WolfHunter.qml
+    qml/Quests/Elven/WolfHunter.qml \
+    qml/NPC/Elven/Eomund.qml \
+    qml/Places/Elven/TheLibrary.qml \
+    qml/Places/Elven/EomundsStudy.qml \
+    qml/NPC/Elven/Eomund.qml \
+    qml/Quests/Elven/LivingHistory.qml \
+    qml/NPC/Elven/Nynia.qml
 
 RESOURCES += \
     resources.qrc

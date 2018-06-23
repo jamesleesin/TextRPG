@@ -6,6 +6,7 @@ Item {
     property string greeting: ""
     property string doneQuestText: ""
     property string questOffered: ""
+    property bool hasTalkToQuest: false
 
     Column{
         id: npc_text_container

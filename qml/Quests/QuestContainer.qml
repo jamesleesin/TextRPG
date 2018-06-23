@@ -16,10 +16,11 @@ Item {
     property string questProgress: ""
     property string redeemAt: ""
     // parser stuff
-    property string questType: ""
-    property variant questObjective: []
+    property string questType: "" //COLLECT,FIND,KILL,TALKTO
+    property variant questObjective: [] // [item:number] or [monster:number] or [npctotalkto]
     property bool questComplete: false
-    property variant numToKillRemaining:[]
+    property variant numToKillRemaining:[] // for KILL quests
+    property bool talkedToNPCYet: false // for talkto quests
 
     height: desc.height+20
 
@@ -28,6 +29,7 @@ Item {
     function updateProgress(){
         var returnProgress = "";
         var complete = true; // set true first
+        // collect a certain number of resource
         if (questType === "COLLECT"){
             for (var q = 0; q < questObjective.length; q++){
                 if (q != 0) returnProgress += ", ";
@@ -55,6 +57,7 @@ Item {
                 returnProgress += quantityHave + "/" + quantityNeeded + ")";
             }
         }
+        // find a certain card
         else if (questType === "FIND"){
             var numItemsToFind = questObjective.length;
             var numFound = 0;
@@ -71,10 +74,12 @@ Item {
                     returnProgress += "0/1)";
                 }
             }
-            if (numFound >= numItemsToFind){
-                complete = true;
+            // complete to false if numfound is < required
+            if (numFound < numItemsToFind){
+                complete = false;
             }
         }
+        // kill a certain number of a certain monster
         else if (questType === "KILL"){
             // for this check we just check if kills remaining is > 0.
             // we decrease numToKillRemaining from monsterKilled in interface.qml
@@ -93,7 +98,12 @@ Item {
                 returnProgress += (killsNeeded - killsRemaining) + "/" + killsNeeded + ")";
             }
         }
-
+        // find and talk to a certain person
+        else if (questType === "TALKTO"){
+            complete = talkedToNPCYet;
+            if (!complete)
+                returnProgress = "Not yet talked to."
+        }
         else{
             complete = false;
         }
